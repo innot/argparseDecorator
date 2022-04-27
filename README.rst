@@ -11,7 +11,7 @@ from the function signature.
 
 Here is a simple example of a command that reverses the input:
 
-..code:: Python
+..code:: python
 
     >>> from argparsedecorator import *
     >>> parser = ArgParseDecorator()
@@ -23,7 +23,7 @@ Here is a simple example of a command that reverses the input:
 
 With this a command can be executed like this
 
-..code:: Python
+..code:: python
 
     >>> parser.execute("reverse foobar")
     raboof
