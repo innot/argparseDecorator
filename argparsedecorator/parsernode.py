@@ -100,11 +100,8 @@ class ParserNode:
         is regenerated.
         """
         if not self._parser:
-            # need to generate it first
-            if self._parent:  # not root
-                self.generate_parser(self._parent.argumentparser)
-            else:
-                self.generate_parser(None)
+            # need to generate it first, strating at the root node
+            self.root.generate_parser(None)
         return self._parser
 
     @property
@@ -302,6 +299,7 @@ class ParserNode:
             # node does not exist. Create it
             node = ParserNode(name, self)
             self._children[name] = node
+            self.root._parser = None    # invalidate any previously created ArgumentParsers
 
         return node.get_node(names)
 
