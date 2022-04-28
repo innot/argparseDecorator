@@ -3,13 +3,13 @@
 # Copyright (c) 2022 Thomas Holland
 #
 # This work is licensed under the terms of the MIT license.
-# For a copy, see the accompaning LICENSE.txt file or go to <https://opensource.org/licenses/MIT>.
+# For a copy, see the accompaning LICENSE.txt.txt file or go to <https://opensource.org/licenses/MIT>.
 
 import asyncio
 from argparse import ArgumentParser, Namespace
 from typing import List, Union, Callable, Any, Type, Optional, Dict, Tuple
 
-from . import OneOrMore     # for the builtin help command
+from . import OneOrMore, ZeroOrMore  # for the builtin help command
 from .argument import Argument
 from .parsernode import ParserNode
 
@@ -84,16 +84,16 @@ class ArgParseDecorator:
         if helpoption == "None":
             self.rootnode.add_help = False
 
-    def help(self, command: OneOrMore[str]) -> None:
+    def help(self, command: ZeroOrMore[str]) -> None:
         """
         Prints help for the given command.
         :param command: Name of the command to get help for
         :type command: list
         """
-        if self.rootnode.has_node(command):
-            node = self.rootnode.get_node(command)
-        else:
-            node = self.rootnode
+        node = self.rootnode
+        if command:
+            if self.rootnode.has_node(command):
+                node = self.rootnode.get_node(command)
         argparser = node.argumentparser
         argparser.print_help()
 
@@ -185,6 +185,28 @@ class ArgParseDecorator:
             return decorator
 
     def add_argument(self, *args: str, **kwargs: Any) -> Callable:
+        """
+        Add an argument to the command.
+
+        This is an alternative way to add arguments to a function.
+        While its use is usually not required there might be some situations where
+        the function signature and its annotations are not sufficient to accurately
+        describe an argument. In this case the 'add_argument' decorator can be used.
+        Any pararmeter to this decorator is passed directly to
+        'argparse.add_argument() https://docs.python.org/3/library/argparse.html#the-add-argument-method'
+
+        The decorated function must have an argument of the same name or use *args and **kwargs arguments
+        to retrieve the value of these arguments.
+
+        Example
+        .. code::
+            @parser.command
+            @parser.add_argument('dest_file', type=argparse.FileType('r', encoding='latin-1'))
+            @parser.add_argument('--foo', '-f')
+            def write(*args, **kwargs):
+                dest_file = args[0]
+                foo = kwargs['foo']
+        """
 
         def decorator(func) -> Callable:
             node: ParserNode = self._node_from_func(func)

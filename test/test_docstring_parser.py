@@ -69,6 +69,44 @@ class MyTestCase(unittest.TestCase):
         node.analyse_docstring(self.test_alias)
         self.assertEqual(['--foobar', '-f', '--baz'], node.arguments['--foo'].alias)
 
+    def test_choices(self):
+        """
+        :choices c1: 'foo', 'bar', 'baz'
+        :choices c2: 1, 2, 3
+        :choices c3: range(1,4)
+        """
+        node = ParserNode("test")
+        c1 = Argument('c1')
+        node.add_argument(c1)
+        c2 = Argument('c2')
+        node.add_argument(c2)
+        c3 = Argument('c3')
+        node.add_argument(c3)
+
+        node.analyse_docstring(self.test_choices)
+        self.assertListEqual(['foo', 'bar', 'baz'], list(node.arguments['c1'].choices))
+        self.assertListEqual([1, 2, 3], list(node.arguments['c2'].choices))
+        self.assertEqual(range(1, 4), node.arguments['c3'].choices)
+
+    def test_metavar(self):
+        """
+        :metavar m1: 'foo', 'bar', 'baz'
+        """
+        node = ParserNode("test")
+        m1 = Argument('m1')
+        m1.nargs = 3
+        node.add_argument(m1)
+
+        node.analyse_docstring(self.test_metavar)
+        self.assertListEqual(['foo', 'bar', 'baz'], list(node.arguments['m1'].metavar))
+
+        node = ParserNode("test")
+        m1 = Argument('m1')
+        m1.nargs = 1
+        node.add_argument(m1)
+        with self.assertRaises(ValueError):
+            node.analyse_docstring(self.test_metavar)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,8 +1,9 @@
 #  Copyright (c) 2022 Thomas Holland
 #
 #  This work is licensed under the terms of the MIT license.
-#  For a copy, see the accompanying LICENSE.txt file or go to <https://opensource.org/licenses/MIT>.
+#  For a copy, see the accompanying LICENSE.txt.txt file or go to <https://opensource.org/licenses/MIT>.
 #
+import argparse
 from typing import Union
 
 from argparsedecorator import *
@@ -38,4 +39,15 @@ def add(values: OneOrMore[float], squared: Option = True) -> None:
     print(sum(values))
 
 
-parser.execute("help add")
+# parser.execute("help add")
+
+@parser.command()
+@parser.add_argument('dest_file', type=argparse.FileType('r', encoding='latin-1'))
+@parser.add_argument('--ext', '-e')
+def write(*args, **kwargs):
+    dest = args[0]
+    ext = kwargs['ext']
+    print(dest, ext)
+
+
+parser.execute("write --ext .py readme_demo.py")

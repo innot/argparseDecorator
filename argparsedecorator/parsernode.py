@@ -3,7 +3,7 @@
 # Copyright (c) 2022 Thomas Holland
 #
 # This work is licensed under the terms of the MIT license.
-# For a copy, see the accompaning LICENSE.txt file or go to <https://opensource.org/licenses/MIT>.
+# For a copy, see the accompaning LICENSE.txt.txt file or go to <https://opensource.org/licenses/MIT>.
 
 from __future__ import annotations
 
@@ -543,11 +543,15 @@ class ParserNode:
             elif line.startswith(':alias'):
                 # :alias name: alias1, alias2, ...
                 in_description = False
-                self.parse_alias(line[len(':param'):].strip())
+                self.parse_alias(line[len(':alias'):].strip())
 
             elif line.startswith(":choices"):
                 in_description = False
-                self.parse_choices(line[len(':param'):].strip())
+                self.parse_choices(line[len(':choices'):].strip())
+
+            elif line.startswith(":metavar"):
+                in_description = False
+                self.parse_metavar(line[len(':metavar'):].strip())
 
             elif in_description and line:
                 description.append(line)
@@ -615,11 +619,24 @@ class ParserNode:
         if not arg:
             raise NameError(f":choices {arg_name}: Can't find an argument names {arg_name}")
 
-        arg.choices = tmp[0]
+        choices = eval(tmp[0], self.function_globals)
+        arg.choices = choices
 
-    def __str__(self,
+    def parse_metavar(self, line: str) -> None:
+        # split into name and the coices
+        tmp = line.split(':', maxsplit=1)
+        arg_name = tmp.pop(0).strip()
+        if not tmp:
+            raise ValueError(":metavar ...: requires at least one metavar name.")
+        arg = self.get_argument(arg_name)
+        if not arg:
+            raise NameError(f":metavar {arg_name}: Can't find an argument names {arg_name}")
 
-                level: int = 0):
+        metas = split_strip(tmp[0])
+        metas = [m.strip('"\'') for m in metas]
+        arg.metavar = metas
+
+    def __str__(self, level: int = 0):
         tab = '\t' * level
         print(tab + f"{self.title} : {self.description}")
         if self._children:
@@ -627,6 +644,11 @@ class ParserNode:
             for name in self._children.keys():
                 self._children[name].__str__(level + 1)
 
+
+def split_strip(string: str, sep: str = ',') -> List[str]:
+    """Split a string and remmove all whitespaces."""
+    splitted = string.split(sep)
+    return [s.strip() for s in splitted]
 
 def resolve_literals(string: str) -> str:
     # replace Literal[...] with a tuple (...)

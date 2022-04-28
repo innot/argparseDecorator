@@ -222,7 +222,7 @@ class Argument:
         num = len(values)
         if num > 1 and num != self.nargs:
             raise ValueError(
-                f"List of metavar entries ({num}) must match number of arguments in nargs ({self.nargs}")
+                f"List of metavar entries ({num}) must match number of arguments in nargs ({self.nargs})")
         self._metavar = values
 
     @property

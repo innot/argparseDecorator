@@ -17,12 +17,12 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'ArgParseDecorator'
+project = 'argparseDecorator'
 copyright = '2022, Thomas Holland'
 author = 'Thomas Holland'
 
 # The full version, including alpha/beta/rc tags
-release = '0.9'
+release = '0.9alpha'
 
 
 # -- General configuration ---------------------------------------------------

@@ -33,10 +33,10 @@ With this a command can be executed like this
     raboof
 
 
-argparseDecorator makes heavy use (and propably misuse) of type Annotations_ to
+argparseDecorator makes heavy use (and propably misuse) of type_annotations_ to
 pass additional information to the ArgumentParser. For example the following
 command will add up a list of numbers or, if '--squared' is added to the command,
-will make the sum of the squares.
+will calculate the sum of the squares.
 
 .. code:: python
 
@@ -46,6 +46,11 @@ will make the sum of the squares.
             values = [x*x for x in values]
         print sum(values)
 
+
+'OneOrMore[float]' tells the decorator, that 'values' must have at least one value and
+that it is accepting only valid numbers (int or float). 'Option = True' marks 'squared'
+as an option (starting with '--') and that it has the the value 'True' if set on the
+command line or 'False' otherwise.
 
 The 'add' command can now be used like this
 
@@ -58,6 +63,8 @@ The 'add' command can now be used like this
     30
 
 Take a look at the Annotations_ API for all supported annotations and more examples.
+
+.. _Annotations: https://argparseDecorator.readthdocs.io/.
 
 The argparseDecorator also uses the docstring_ of a decorated function to get a description
 of the command that is used for help and some additional meta information about arguments
@@ -105,7 +112,7 @@ Requirements
 
 Installation
 ============
-If the requirements are met, then a simple
+{TODO} If the requirements are met, then a simple
 
 .. code:: bash
 
@@ -115,10 +122,10 @@ will install the argParseDecorator module.
 
 Documentation
 =============
-Comprehensive documentation is available at https://advpistepper.readthedocs.io/.
+Comprehensive documentation is available at https://argparseDecorator.readthedocs.io/.
 
 
 .. _argparse: https://docs.python.org/3/library/argparse.html
 .. _decorator: https://docs.python.org/3/glossary.html#term-decorator
-.. _Annotations: https://docs.python.org/3/library/typing.html
+.. _type_annotations: https://docs.python.org/3/library/typing.html
 .. _docstring: https://peps.python.org/pep-0257/
