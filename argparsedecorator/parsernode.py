@@ -3,7 +3,16 @@
 # Copyright (c) 2022 Thomas Holland
 #
 # This work is licensed under the terms of the MIT license.
-# For a copy, see the accompaning LICENSE.txt.txt file or go to <https://opensource.org/licenses/MIT>.
+# For a copy, see the accompaning LICENSE.txt.txt file
+# or go to <https://opensource.org/licenses/MIT>.
+
+"""
+ParserNode is a class to store one command and all of its arguments and keeps a list
+of child ParserNodes for subsommands.
+
+This class also has all the code to parse a function signature and the docstring associated
+with that function.
+"""
 
 from __future__ import annotations
 
@@ -25,8 +34,8 @@ class ParserNode:
     A tree of nodes is used to represent the complete command hierarchy.
     The root node is generated automatically be the :class:'ArgParseDecorator'. The children
     are added by successive calls from the :method:'command' overlay operator.
-    Once the tree is finished, the actual :class:'ArgumentParser' representing all commands and their
-    arguments of this node can be accessed by the :method:'argumentparser' property.
+    Once the tree is finished, the actual :class:'ArgumentParser' representing all commands and
+    their arguments of this node can be accessed by the :method:'argumentparser' property.
 
     Each 'ParserNode' has a :method:'root' property to get the root node.
 
@@ -71,8 +80,8 @@ class ParserNode:
         self._parser: Union[ArgumentParser, None] = None
         self._subparser: Union[object, None] = None
 
-        # The argumentparser class to use. Defaults to the provided NonExitingArgumentParser but can be changed
-        # via the argparse_class property to use a custom subclass.
+        # The argumentparser class to use. Defaults to the provided NonExitingArgumentParser
+        # but can be changed via the argparse_class property to use a custom subclass.
         self._argparser_class: Union[Type[ArgumentParser], None] = NonExitingArgumentParser
 
         # default is to inhibit the [-h] option and to use the "help" command
@@ -90,9 +99,8 @@ class ParserNode:
         if self._parent:
             # traverse toward the root
             return self._parent.root
-        else:
-            # This node is the root.
-            return self
+        # This node is the root.
+        return self
 
     @property
     def argumentparser(self) -> ArgumentParser:
@@ -110,32 +118,32 @@ class ParserNode:
     def argparser_class(self) -> Type[ArgumentParser]:
         """
         The class to use for building the parser.
-        Default is the :class:'NonExitingArgumentParser' class, a subclass or :class:'argparse.ArgumentParser' that
-        does not call sys.exit().
+        Default is the :class:'NonExitingArgumentParser' class, a subclass of
+        :class:'argparse.ArgumentParser' that does not call sys.exit().
         It can be changed to subclass of ArgumentParser.
-        Only relevant for the root Node. If changed on any other child node the class will be passed
-        to the root node and, if the parser has already been generated, the whole parser will be regenerated.
+        Only relevant for the root Node. If changed on any other child node the class will be
+        passed to the root node and, if the parser has already been generated, the whole parser
+        will be regenerated.
         """
         if self._parent:
             # traverse to root
             return self._parent.argparser_class
+        # this is root
+        if self._argparser_class:
+            return self._argparser_class
         else:
-            # this is root
-            if self._argparser_class:
-                return self._argparser_class
-            else:
-                return NonExitingArgumentParser  # default
+            return NonExitingArgumentParser  # default
 
     @argparser_class.setter
     def argparser_class(self, new_class: Type[ArgumentParser]):
         if self._parent:
             # traverse to root
             self._parent.argparser_class = new_class
-        else:
-            self._argparser_class = new_class
-            if self._parser:
-                # regenerate parser
-                self.generate_parser(None)
+        # this is root
+        self._argparser_class = new_class
+        if self._parser:
+            # regenerate parser
+            self.generate_parser(None)
 
     @property
     def function(self) -> Callable[[Dict[str, Any]], Any]:
@@ -178,7 +186,8 @@ class ParserNode:
 
     @property
     def bound_method(self):
-        """Is 'True' when the command function is a bound method, i.e. if it requires a 'self' argument.
+        """Is 'True' when the command function is a bound method,
+        i.e. if it requires a 'self' argument.
         This property is read only."""
         return self._func_has_self
 
@@ -260,7 +269,7 @@ class ParserNode:
         if not self._parent:
             # root node is special. It generates the ArgumentParser starting point
             parser_cls = self.argparser_class
-            self._parser = parser_cls(prog="",  # the root has no name. Must be empty to avoid default
+            self._parser = parser_cls(prog="",  # Must be empty to avoid default
                                       description=self.description,
                                       add_help=self._add_help)
         else:
@@ -386,10 +395,13 @@ class ParserNode:
             self.analyse_annotation(annotation, arg)
 
             # handle some special cases
-            if arg.optional and default is True:
-                arg.action = "store_true"  # -f: Flag = True
             if arg.optional and default is False:
-                arg.action = "store_false"  # -f: Flag = False
+                # This seems counter-intuitive, but if a flag is absent on the command line
+                # nothing is returned from the parse_arg() call and the default of 'False'
+                # is assigned to the argument.
+                arg.action = "store_true"  # -f: Flag = False
+            if arg.optional and default is True:
+                arg.action = "store_false"  # -f: Flag = True
             if arg.action == "store_const" or arg.action == "append_const":
                 arg.const = default  # -f: Flag | AppendConst = 42
             else:
@@ -408,8 +420,8 @@ class ParserNode:
             return
 
         # At this point the annotation can be either
-        #  -    a string object (Python 3.10+ or Python 3.7+ with from __future__ import annotations), or
-        #  -    a Type or Class object (Python 3.5 - Python 3.9)
+        #  -    a string (Python 3.10+ or Python 3.7+ with from __future__ import annotations), or
+        #  -    a Type or Class (Python 3.5 - Python 3.9)
         # convert everything non-stringy into a string for further parsing
         if inspect.isclass(annotation):
             a_str = fullname(annotation)
@@ -417,7 +429,8 @@ class ParserNode:
             a_str = str(annotation)
 
         # from here we only deal with string annotation, regardless of the Python version
-        # This makes it compatible with versions older than 3.8 (which has methods for analyzing types)
+        # This makes it compatible with versions older than 3.8 (which has methods for
+        # analyzing types)
 
         # check if 3.10 style Union (seperated by bars) or pre 3.10 (Union[...])
         old_style_parser = re.compile(r".*Union\[(.*)]")  # parse "Union[foo, bar]" to "foo, bar"
@@ -513,7 +526,8 @@ class ParserNode:
         elif is_type_key(CountAction, part):
             arg.action = "count"
             if arg.type:
-                arg.type = None  # the count action implies a int type and does not like explicit type declarations
+                # the count action implies a int type and does not like explicit type declarations
+                arg.type = None
         elif is_type_key(ExtendAction, part):
             arg.action = "extend"
 
@@ -528,6 +542,9 @@ class ParserNode:
 
     def analyse_docstring(self, func: Callable) -> None:
         """
+        Parse the docstring to extract the description (anything before the first metadata) and
+        any metadata.
+        Metadata
         """
 
         description: List[str] = []
@@ -597,7 +614,8 @@ class ParserNode:
         # aliases only work for flag (-f) or optional (--foo)
         arg = self.get_argument(arg_name)
         if not arg or not arg.name.startswith('-'):
-            raise NameError(f":alias {arg_name}: Can't find a Flag or Optional with the name {arg_name}")
+            raise NameError(
+                f":alias {arg_name}: Can't find a Flag or Optional with the name {arg_name}")
 
         for alias in arg_aliases:
             arg.add_alias(alias)

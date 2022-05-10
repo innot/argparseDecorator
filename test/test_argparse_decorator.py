@@ -3,7 +3,11 @@
 # Copyright (c) 2022 Thomas Holland
 #
 # This work is licensed under the terms of the MIT license.
-# For a copy, see the accompaning LICENSE.txt.txt file or go to <https://opensource.org/licenses/MIT>.
+# For a copy, see the accompaning LICENSE.txt.txt file
+# or go to <https://opensource.org/licenses/MIT>.
+
+# pylint: skip-file
+
 from __future__ import annotations
 
 import unittest
@@ -80,19 +84,21 @@ class MyTestCase(unittest.TestCase):
         apd = ArgParseDecorator()
 
         @apd.command
-        def cmd(foo: Flag = True, bar: Flag = False, baz: Flag = False) -> Tuple:
-            return foo, bar, baz
+        def cmd(foo: Flag = False, bar: Flag = False, baz: Flag = True, bang: Flag = True) -> Tuple:
+            return foo, bar, baz, bang
 
         node = apd.rootnode.get_node('cmd')
         args = node.arguments
         self.assertEqual("store_true", args["-foo"].action)
-        self.assertEqual("store_false", args["-bar"].action)
+        self.assertEqual("store_true", args["-bar"].action)
         self.assertEqual("store_false", args["-baz"].action)
+        self.assertEqual("store_false", args["-bang"].action)
 
-        f1, f2, f3 = apd.execute("cmd -foo -bar")
+        f1, f2, f3, f4 = apd.execute("cmd -foo -baz")
         self.assertTrue(f1)
         self.assertFalse(f2)
         self.assertFalse(f3)
+        self.assertTrue(f4)
 
     def test_option(self):
         apd = ArgParseDecorator()

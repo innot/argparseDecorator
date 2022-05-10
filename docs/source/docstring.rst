@@ -1,7 +1,7 @@
 Using the Docstring
 ===================
 
-*argparseDecorator* uses the docstring of a decorated function for description of the command and its arguments,
+argparseDecorator uses the docstring of a decorated function for description of the command and its arguments,
 as well as some additional data that can not be set via the signature and its annotations.
 
 Command Description
@@ -59,7 +59,7 @@ will generate:
 
     ...
     positional arguments:
-      bar  Which bar to foo
+      bar   Which bar to foo
 
 If the help for an argument starts with ``SUPPRESS``, then this argument is hidden in the help. This might
 be usefull to hide some unofficial options used for example for debugging.
@@ -93,8 +93,8 @@ the last two lines are identical and will print ``True``.
 
 .. note::
 
-    While the argname given to ``:alias`` will work with or without leading hypens, the actual alias(es) must have
-    either one or two leading hypens.
+    While the argname given to ``:alias`` will work with or without leading hyphens, the actual alias(es) must have
+    either one or two leading hyphens.
 
 Choices
 -------

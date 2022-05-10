@@ -3,7 +3,8 @@
 # Copyright (c) 2022 Thomas Holland
 #
 # This work is licensed under the terms of the MIT license.
-# For a copy, see the accompaning LICENSE.txt.txt file or go to <https://opensource.org/licenses/MIT>.
+# For a copy, see the accompaning LICENSE.txt.txt file
+# or go to <https://opensource.org/licenses/MIT>.
 
 
 import argparse
@@ -12,12 +13,15 @@ from typing import Callable, Optional, IO
 
 
 class NonExitingArgumentParser(argparse.ArgumentParser):
-    """Slightly modified version of the default :class:'ArgumentParser' to make it more suitable
+    """
+    Slightly modified version of the default :class:'ArgumentParser' to make it more suitable
     for a self contained command line interpreter.
+
     1. Inhibit programm exits by
         a. setting the 'exit_on_error' flag to False (works only Pyhton 3.9+) and
         b. overriding the exit() method.
     2. Redirect all output to a user supplied print function instead of stdout/stderr.
+
     """
 
     def __init__(self, *args, **kwargs):

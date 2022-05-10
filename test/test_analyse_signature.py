@@ -27,9 +27,9 @@ class TestSignatureParser(unittest.TestCase):
         node = ParserNode("test")
         node.analyse_signature(test2)
         arg: Argument = node.arguments['-arg1']
-        self.assertEqual("store_true", arg.action)
-        arg: Argument = node.arguments['--arg2']
         self.assertEqual("store_false", arg.action)
+        arg: Argument = node.arguments['--arg2']
+        self.assertEqual("store_true", arg.action)
 
         def test3(arg1: Union[Exactly3[int], StoreConstAction] = 1, arg2: AppendConstAction = "foo"):
             return arg1, arg2

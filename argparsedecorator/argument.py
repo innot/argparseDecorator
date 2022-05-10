@@ -44,7 +44,8 @@ class Argument:
 
     def add_alias(self, alias: str):
         if self.positional:
-            raise ValueError("Alias names can only be added to flags or options, i.e. arguments starting with '-'")
+            raise ValueError(
+                "Alias names can only be added to flags or options, i.e. arguments starting with '-'")
         if not alias.startswith('-'):
             raise ValueError("An alias name must start with a '-'")
         self._alias.append(alias)
@@ -85,7 +86,8 @@ class Argument:
             new_value = number
         else:
             if number not in ['?', '*', '+']:
-                raise ValueError(f"Number of arguments must be an int or either of '?', '*', '+', was f{number}")
+                raise ValueError(
+                    f"Number of arguments must be an int or either of '?', '*', '+', was f{number}")
             new_value = number
 
         if self._nargs:
@@ -128,6 +130,7 @@ class Argument:
     def type(self) -> callable:
         """The type of the Argument. Can be any callable type.
         Can be a string with the name of the callable.
+
         .. warning::
             As the conversion is done by calling :func:'eval()' which is
             a security issue. Do not set this property to any arbitrary
@@ -142,7 +145,8 @@ class Argument:
     def type(self, argtype: Union[str, Type, Callable]) -> None:
 
         if isinstance(argtype, str):
-            argtype = argtype.replace("builtins.", "")   # remove the "builtin." prefix as it causes errors
+            argtype = argtype.replace("builtins.",
+                                      "")  # remove the "builtin." prefix as it causes errors
             new_type: Callable = eval(argtype, self._globals)
         else:  # not a str
             if not callable(argtype):
@@ -174,7 +178,8 @@ class Argument:
             raise ValueError(f"{values} is not a Sequence")
 
         if self._choices:
-            raise ValueError(f"choices can be set only once. New values: {values}, old values: {self._choices}")
+            raise ValueError(
+                f"choices can be set only once. New values: {values}, old values: {self._choices}")
 
         self._choices = values
 
@@ -242,12 +247,12 @@ class Argument:
 
     @property
     def positional(self) -> bool:
-        """'True' if this argument is a positional argument, i.e. does not start with a hypen '-'."""
+        """'True' if this argument is a positional argument, i.e. does not start with a hyphen '-'."""
         return not self._name.startswith('-')
 
     @property
     def optional(self) -> bool:
-        """'True' if this argument is an optional argument, i.e. starts with a hypen '-'."""
+        """'True' if this argument is an optional argument, i.e. starts with a hyphen '-'."""
         return self._name.startswith('-')
 
     def get_command_line(self) -> Tuple[List[str], Dict[str, Any]]:

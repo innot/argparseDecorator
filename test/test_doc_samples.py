@@ -3,6 +3,9 @@
 #  This work is licensed under the terms of the MIT license.
 #  For a copy, see the accompanying LICENSE.txt file or go to <https://opensource.org/licenses/MIT>.
 #
+
+# pylint: skip-file
+
 from __future__ import annotations
 
 import unittest
@@ -17,10 +20,10 @@ class MyTestCase(unittest.TestCase):
 
         @parser.command
         def ls(files: ZeroOrMore[str],
-               a: Flag = True,  # create '-a' flag argument that is 'True' if '-a' is on the command line.
-               ignore: Option | Exactly1[str] = "",  # create optional '--ignore PATTERN' argument
-               columns: Option | int | Choices[Literal["range(1,5)"]] = 1,  # valid input for '--columns' is 1 to 4
-               sort: Option | Choices[Literal["fwd", "rev"]] = "fwd",  # '--sort {fwd,rev}' with default 'fwd'
+               a: Flag = True,
+               ignore: Option | Exactly1[str] = "",
+               columns: Option | int | Choices[Literal["range(1,5)"]] = 1,
+               sort: Option | Choices[Literal["fwd", "rev"]] = "fwd",
                ):
             """
             List information about files (the current directory by default).
@@ -40,9 +43,32 @@ class MyTestCase(unittest.TestCase):
             """
             return {"files": files, "a": a, "ignore": ignore, "columns": columns, "sort": sort}
 
-        parser.execute("help ls")
+        # parser.execute("help ls")
         result = parser.execute("ls -a -c 2 --sort rev --ignore *.log")
-        self.assertIsNotNone(result)
+        self.assertTrue(result['a'])
+        self.assertEqual(2, result['columns'])
+        self.assertEqual("rev", result['sort'])
+        self.assertEqual(["*.log"], result['ignore'])
+
+    def test_annotations_flag(self):
+        parser = ArgParseDecorator()
+
+        @parser.command
+        def cmd(f: Flag = False):
+            return f
+
+        self.assertTrue(parser.execute("cmd -f"))
+        self.assertFalse(parser.execute("cmd"))
+
+    def test_annotations_option(self):
+        parser = ArgParseDecorator()
+
+        @parser.command
+        def cmd(foo: Option = False):
+            return foo
+
+        self.assertTrue(parser.execute("cmd --foo"))
+        self.assertFalse(parser.execute("cmd"))
 
 
 if __name__ == '__main__':

@@ -3,35 +3,37 @@
 # Copyright (c) 2022 Thomas Holland
 #
 # This work is licensed under the terms of the MIT license.
-# For a copy, see the accompaning LICENSE.txt.txt file or go to <https://opensource.org/licenses/MIT>.
+# For a copy, see the accompaning LICENSE.txt.txt file or
+# go to <https://opensource.org/licenses/MIT>.
+
+"""
+
+    .. warning::
+        Be advised, if the ArguementParserBuilder is used as a static class variable like in the
+        example above, then it is required to pass a reference of the class instance to
+        the :method:'execute()' and :method:'execute_async()' calls. e.g.
+
+        .. code-block:: python
+
+            class CLI:
+                parser = ArgParseDecorator()
+
+                @parser.command
+                ...
+
+                def execute(self, commandline):
+                    self.parser.execute(commandline, self)
+
+    foobar
+"""
 
 import asyncio
 from argparse import ArgumentParser, Namespace
 from typing import List, Union, Callable, Any, Type, Optional, Dict, Tuple
 
-from . import OneOrMore, ZeroOrMore  # for the builtin help command
+from .annotations import ZeroOrMore  # for the builtin help command
 from .argument import Argument
 from .parsernode import ParserNode
-
-"""
-
-    
-    .. attribute 
-    ..warning::
-        Be advised, if the ArguementParserBuilder is used as a static class variable like in the example above,
-        then it is required to pass a reference of the class instance to the :method:'execute()'
-        and :method:'execute_async()' calls. e.g.::
-
-            class CLI:
-                parser = ArgParseDecorator()
-                
-                @parser.command
-                ...
-                
-                def execute(self, commandline):
-                    self.parser.execute(commandline, self)
-
-"""
 
 
 class ArgParseDecorator:
@@ -40,20 +42,20 @@ class ArgParseDecorator:
 
     It uses the signature and the annotations of the decorated class to determine all arguments
     and their types.
-    It also uses the docstring to for the command description, the help strings for all arguments and
-    some additional metadata that can not be expressed via annotations.
+    It also uses the docstring to for the command description, the help strings for all arguments
+    and some additional metadata that can not be expressed via annotations.
 
-
-    :param helpoption:  Either 'help' to automatically create a help command, or
-                        '-h' to automatically add a -h/--help argument to each command, or
-                        'none' to disable any automatically generated help.
-                        Defaults to 'help'
-    :type helpoption:   str
-    :param hyph_replace string to be replaced by '-' in command names, defaults to '__'
-    :type hyph_replace  str
-    :param argparser_class: Class to be used for ArgumentParser, defaults to :class:'NonExitingArgumentParser'
+    :param helpoption:  (Optional) Either 'help' to automatically create a help command, or
+        '-h' to automatically add a -h/--help argument to each command, or
+        'none' to disable any automatically generated help.
+        Defaults to 'help'
+    :param hyph_replace: string to be replaced by '-' in command names, defaults to '__'
+    :param argparser_class: Class to be used for ArgumentParser,
+        defaults to :class:'NonExitingArgumentParser'
     :type argparser_class: :class:'argparse.ArgumentParser' or subclass thereof.
-    :param kwargs:      Other arguments to be passed to the ArgumentParser, e.g. 'description' or 'allow_abbrev'
+    :param kwargs: Other arguments to be passed to the ArgumentParser,
+        e.g. 'description' or 'allow_abbrev'
+
     """
 
     def __init__(self,
@@ -65,7 +67,8 @@ class ArgParseDecorator:
         if helpoption == "-h" or helpoption == "help" or helpoption is None:
             self.helptype = helpoption
         else:
-            raise ValueError(f"help argument may only be 'help', '-h' or None. Was {str(helpoption)}")
+            raise ValueError(
+                f"help argument may only be 'help', '-h' or None. Was {str(helpoption)}")
 
         self.hyphen_replacement = hyph_replace
 
@@ -97,11 +100,6 @@ class ArgParseDecorator:
         argparser = node.argumentparser
         argparser.print_help()
 
-    def build(self):
-        # now generate all Argumentparsers
-        self.rootnode.generate_parser(None)
-        self._parser: Union[ArgumentParser, None] = None
-
     def execute(self, commandline: Union[str, List[str]], base=None) -> Any:
         """
         Parse a command line and execute it.
@@ -110,9 +108,9 @@ class ArgParseDecorator:
         i.e. having 'self' as the first argument. It is not required if the command is implemented
         with a function (unbound) or an inner function (already bound).
 
-        :param commandline: A string with a command and its arguments (e.g. 'command --flag argument') or
-                            a list with the command name and its arguments as items
-                            (e.g. ['command', '--flag', 'argument'])
+        :param commandline: A string with a command and arguments (e.g. 'command --flag arg') or
+            a list with the command name and its arguments as items
+            (e.g. ['command', '--flag', 'argument'])
         :type commandline: String or list of stings
         :param base: an object that is passed to commands as the 'self' argument, defaults to 'None'
         :type base: the object the commands are bound to.
@@ -132,6 +130,12 @@ class ArgParseDecorator:
         return result
 
     async def execute_async(self, commandline: str) -> object:
+        """
+        Not yet working, do not use.
+
+        :param commandline:
+        :return:
+        """
         argparser: ArgumentParser = self.argumentparser
         args = argparser.parse_args(commandline.split())
         func = args.func
@@ -151,7 +155,7 @@ class ArgParseDecorator:
         """
         argparser: ArgumentParser = self.rootnode.argumentparser
         if argparser is None:
-            self.build()
+            self.rootnode.generate_parser(None)
             argparser = self.rootnode.argumentparser
 
         return argparser
@@ -181,8 +185,7 @@ class ArgParseDecorator:
         # and we need to return the decorator function to be called later.
         if len(args) == 1 and len(kwargs) == 0 and callable(args[0]):
             return decorator(args[0])
-        else:
-            return decorator
+        return decorator
 
     def add_argument(self, *args: str, **kwargs: Any) -> Callable:
         """
@@ -195,17 +198,20 @@ class ArgParseDecorator:
         Any pararmeter to this decorator is passed directly to
         'argparse.add_argument() https://docs.python.org/3/library/argparse.html#the-add-argument-method'
 
-        The decorated function must have an argument of the same name or use *args and **kwargs arguments
-        to retrieve the value of these arguments.
+        The decorated function must have an argument of the same name or use \*args and \*\*kwargs
+        arguments to retrieve the value of these arguments.
 
         Example
-        .. code::
+        
+        .. code-block:: python
+
             @parser.command
             @parser.add_argument('dest_file', type=argparse.FileType('r', encoding='latin-1'))
             @parser.add_argument('--foo', '-f')
-            def write(*args, **kwargs):
+            def write(\*args, \*\*kwargs):
                 dest_file = args[0]
                 foo = kwargs['foo']
+
         """
 
         def decorator(func) -> Callable:
@@ -230,8 +236,12 @@ class ArgParseDecorator:
         return node
 
 
-def get_arguments_from_namespace(args: Namespace, node: ParserNode) -> Tuple[List[str], Dict[str, Any]]:
-    """Convert the Namespace object returned by parse_args() into  *args, **kwargs objects."""
+def get_arguments_from_namespace(
+        args: Namespace,
+        node: ParserNode) -> Tuple[List[str], Dict[str, Any]]:
+    """
+    Convert the Namespace object returned by parse_args() into  \*args, \*\*kwargs objects.
+    """
     all_args = vars(args)
 
     args: List[Any] = []

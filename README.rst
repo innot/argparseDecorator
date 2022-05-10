@@ -15,7 +15,7 @@ from the function signature.
 
 Here is an example for using ArgParseDecorator to create a 'ls' command stub:
 
-.. code:: python
+.. code-block:: python
 
     from __future__ import annotations      # required for Python 3.7 - 3.9. Python 3.10+ has this included
     from argparsedecorator import *         # import the ArgParseDecorator API
@@ -23,7 +23,8 @@ Here is an example for using ArgParseDecorator to create a 'ls' command stub:
     parser = ArgParseDecorator()
 
     @parser.command
-    def ls(files: ZeroOrMore[str],
+    def ls(
+           files: ZeroOrMore[str],
            a: Flag = True,  # create '-a' flag argument that is 'True' if '-a' is on the command line.
            ignore: Option | Exactly1[str] = "",  # create optional '--ignore PATTERN' argument
            columns: Option | int | Choices[Literal["range(1,5)"]] = 1,  # valid input for '--columns' is 1 to 4
@@ -47,9 +48,13 @@ Here is an example for using ArgParseDecorator to create a 'ls' command stub:
         """
         return {"files": files, "a": a, "ignore": ignore, "columns": columns, "sort": sort}
 
+This example shows how annotations are used to add some metadata to the arguments which will be used by
+the argparse library to interpret the command line input.
+Take a look at the documentation_ to learn more about the supported annotations.
+
 Now a command line can be parsed and executed like this:
 
-.. code:: python
+.. code-block:: python
 
         result = parser.execute("ls -a -c 2 --sort rev --ignore *.log")
 
