@@ -7,9 +7,7 @@ Welcome to ArgParseDecorator's documentation!
 
    intro
    usage
-   docstring
-   argparsedecorator
-   modules
+   module_api
 
 Indices and tables
 ==================
