@@ -13,94 +13,73 @@ all the required arguments the argparseDecorator supplies a custom decorator_
 to mark any function as a command and to generate the ArgumentParser
 from the function signature.
 
-Here is a simple example of a command that reverses the input:
+Here is an example for using ArgParseDecorator to create a 'ls' command stub:
 
 .. code:: python
 
-    >>> from argparsedecorator import *
-    >>> parser = ArgParseDecorator()
+    from __future__ import annotations      # required for Python 3.7 - 3.9. Python 3.10+ has this included
+    from argparsedecorator import *         # import the ArgParseDecorator API
 
-    >>> @parser.command
-    ... def reverse(word):
-    ...     print(word[::-1])
-
-
-With this a command can be executed like this
-
-.. code:: python
-
-    >>> parser.execute("reverse foobar")
-    raboof
-
-
-argparseDecorator makes heavy use (and propably misuse) of type_annotations_ to
-pass additional information to the ArgumentParser. For example the following
-command will add up a list of numbers or, if '--squared' is added to the command,
-will calculate the sum of the squares.
-
-.. code:: python
+    parser = ArgParseDecorator()
 
     @parser.command
-    def add(values: OneOrMore[float], squared: Option = True) -> None:
-        if squared:
-            values = [x*x for x in values]
-        print sum(values)
-
-
-'OneOrMore[float]' tells the decorator, that 'values' must have at least one value and
-that it is accepting only valid numbers (int or float). 'Option = True' marks 'squared'
-as an option (starting with '--') and that it has the the value 'True' if set on the
-command line or 'False' otherwise.
-
-The 'add' command can now be used like this
-
-.. code:: python
-
-    >>> parser.execute("add 1 2 3 4")
-    10
-
-    >>> parser.execute("add --squared 1 2 3 4")
-    30
-
-Take a look at the Annotations_ API for all supported annotations and more examples.
-
-.. _Annotations: https://argparseDecorator.readthdocs.io/.
-
-The argparseDecorator also uses the docstring_ of a decorated function to get a description
-of the command that is used for help and some additional meta information about arguments
-that can not be easily written as annotations.
-
-.. code:: python
-
-    @parser.command
-    def add(values: OneOrMore[float], squared: Option = True) -> None:
+    def ls(files: ZeroOrMore[str],
+           a: Flag = True,  # create '-a' flag argument that is 'True' if '-a' is on the command line.
+           ignore: Option | Exactly1[str] = "",  # create optional '--ignore PATTERN' argument
+           columns: Option | int | Choices[Literal["range(1,5)"]] = 1,  # valid input for '--columns' is 1 to 4
+           sort: Option | Choices[Literal["fwd", "rev"]] = "fwd",  # '--sort {fwd,rev}' with default 'fwd'
+           ):
         """
-        Add up a list of numbers.
-        :param values: one or more numbers
-        :param squared: when present square each number first
-        :alias squared: -sq
+        List information about files (the current directory by default).
+        :param files: List of files, may be empty.
+
+        :param a: do not ignore entries strating with '.'
+        :alias a: --all
+
+        :param ignore: do not list entries matching PATTERN
+        :metavar ignore: PATTERN
+
+        :param columns: number of output columns, must be between 1 and 4
+        :alias columns: -c
+
+        :param sort: alphabetic direction of output, either 'fwd' (default) or 'rev'
+        :alias sort: -s
         """
-        if squared:
-            values = [x*x for x in values]
-        print sum(values)
+        return {"files": files, "a": a, "ignore": ignore, "columns": columns, "sort": sort}
 
-
-Now the help command, which is supplied by the argparseDecorator, can output some
-information
+Now a command line can be parsed and executed like this:
 
 .. code:: python
-    >>> parser.execute("help add")
-    usage:  add [--squared] values [values ...]
 
-    Add up a list of numbers.
+        result = parser.execute("ls -a -c 2 --sort rev --ignore *.log")
+
+ArgParseDecorator uses the docstring of the decorated function to get a help string for the command
+and it also parses Sphinx_ style directives to provide help strings for arguments as well as additional
+metadata that can not be written as annotations.
+
+The information provided by the docstring is used by the built-in help command:
+
+.. code:: python
+
+    parser.execute("help ls")
+
+.. code:: output
+
+    usage:  ls [-a] [--ignore PATTERN] [--columns {1,2,3,4}] [--sort {fwd,rev}] [files ...]
+
+    List information about files (the current directory by default).
 
     positional arguments:
-      values          one or more numbers
+      files                 List of files, may be empty.
 
-    optional arguments:
-      --squared, -sq  when present square each number first
+    options:
+      -a, --all             do not ignore entries strating with '.'
+      --ignore PATTERN      do not list entries matching PATTERN
+      --columns {1,2,3,4}, -c {1,2,3,4}
+                            number of output columns, must be between 1 and 4
+      --sort {fwd,rev}, -s {fwd,rev}
+                            alphabetic direction of output, either 'fwd' (default) or 'rev'
 
-See the Docstring_ API for more details and examples.
 
 Requirements
 ============
@@ -129,3 +108,4 @@ Comprehensive documentation is available at https://argparseDecorator.readthedoc
 .. _decorator: https://docs.python.org/3/glossary.html#term-decorator
 .. _type_annotations: https://docs.python.org/3/library/typing.html
 .. _docstring: https://peps.python.org/pep-0257/
+.. _Sphinx: https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html

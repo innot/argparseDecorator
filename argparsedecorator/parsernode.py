@@ -7,11 +7,13 @@
 
 from __future__ import annotations
 
+import argparse
+import collections.abc
 import inspect
 import re
 import sys
 from argparse import ArgumentParser
-from typing import Union, Dict, Callable, Type, Any, Iterable, Optional, Mapping, NoReturn
+from typing import Union, Dict, Callable, Type, Any, Iterable, Optional, Mapping
 
 from .annotations import *
 from .argument import Argument
@@ -64,7 +66,7 @@ class ParserNode:
 
         self._func: Callable[..., Any] = self.no_command
         self._func_globals: Dict[str, Any] = {}
-        self._func_isbound: bool = False
+        self._func_has_self: bool = False
 
         self._parser: Union[ArgumentParser, None] = None
         self._subparser: Union[object, None] = None
@@ -152,7 +154,7 @@ class ParserNode:
         if hasattr(function, '__globals__'):
             self._func_globals = function.__globals__  # type: ignore
         if hasattr(function, '__self__'):
-            self._func_isbound = True
+            self._func_has_self = True
 
         self.analyse_signature(function)
         self.analyse_docstring(function)
@@ -178,7 +180,7 @@ class ParserNode:
     def bound_method(self):
         """Is 'True' when the command function is a bound method, i.e. if it requires a 'self' argument.
         This property is read only."""
-        return self._func_isbound
+        return self._func_has_self
 
     @property
     def arguments(self) -> Dict[str, Argument]:
@@ -188,14 +190,18 @@ class ParserNode:
 
     def get_argument(self, name: str) -> Optional[Argument]:
         """
-        Get a single argument for this command.
-        :param name: name of the argument, e.g. '--foo'
-        :return: The :class:'Argument' object or 'None' if no argument with this name.
+        Get the argument with the given name for this command.
+        If there is no argument with exactly this name then this
+        method will append one or two `-` to find a match.
+
+        :param name: name of the argument, e.g. `--foo`
+        :return: The :class:'Argument' object or `None` if no argument with this name.
         """
-        if name in self._arguments:
-            return self._arguments[name]
-        else:
-            return None
+        for n in [name, '-' + name, '--' + name]:
+            if n in self._arguments:
+                return self._arguments[n]
+
+        return None
 
     def add_argument(self, arg: Argument) -> None:
         """
@@ -299,7 +305,7 @@ class ParserNode:
             # node does not exist. Create it
             node = ParserNode(name, self)
             self._children[name] = node
-            self.root._parser = None    # invalidate any previously created ArgumentParsers
+            self.root._parser = None  # invalidate any previously created ArgumentParsers
 
         return node.get_node(names)
 
@@ -358,7 +364,7 @@ class ParserNode:
 
             # if first parameter is self this is a bound method
             if str(para) == "self":
-                self._func_isbound = True
+                self._func_has_self = True
                 continue
 
             # check if the name already exists in the argument registry
@@ -566,22 +572,16 @@ class ParserNode:
         # split into name and description
         tmp = line.split(':', maxsplit=1)
         arg_name = tmp[0].strip()
-        if len(tmp) > 1:
-            arg_help = tmp[1].strip()
-        else:
-            arg_help = ""
         arg = self.get_argument(arg_name)
         if not arg:
-            # check if is a flag (single hypen) ...
-            arg_name = "-" + arg_name
-            arg = self.get_argument(arg_name)
-            if not arg:
-                # ... or option (double hypen)
-                arg_name = "-" + arg_name
-                arg = self.get_argument(arg_name)
-                if not arg:
-                    # The parameter does not exist
-                    raise NameError(f":param {arg_name}: No parameter with the name {arg_name}")
+            # The parameter does not exist
+            raise NameError(f":param {arg_name}: No parameter with the name {arg_name}")
+        if len(tmp) > 1:
+            arg_help = tmp[1].strip()
+            if arg_help.startswith("SUPPRESS"):
+                arg_help = argparse.SUPPRESS
+        else:
+            arg_help = ""
         arg.help = arg_help
 
     def parse_alias(self, line: str) -> None:
@@ -595,16 +595,9 @@ class ParserNode:
             arg_aliases = []
 
         # aliases only work for flag (-f) or optional (--foo)
-        # if arg_name does not start with a '-' add one or two '-' to get the real argument name.
-        orig_name = arg_name
-        if not arg_name.startswith('-'):
-            arg_name = '-' + arg_name
-            if arg_name not in self.arguments:
-                arg_name = '-' + arg_name
-
         arg = self.get_argument(arg_name)
-        if not arg:
-            raise NameError(f":alias {orig_name}: Can't find a Flag or Optional with the name {orig_name}")
+        if not arg or not arg.name.startswith('-'):
+            raise NameError(f":alias {arg_name}: Can't find a Flag or Optional with the name {arg_name}")
 
         for alias in arg_aliases:
             arg.add_alias(alias)
@@ -620,7 +613,10 @@ class ParserNode:
             raise NameError(f":choices {arg_name}: Can't find an argument names {arg_name}")
 
         choices = eval(tmp[0], self.function_globals)
-        arg.choices = choices
+        if len(choices) == 1 or isinstance(choices, collections.abc.Sequence):
+            arg.choices = choices
+        else:
+            raise ValueError(f"Value of :choices {arg_name}: is not a sequence.")
 
     def parse_metavar(self, line: str) -> None:
         # split into name and the coices
@@ -649,6 +645,7 @@ def split_strip(string: str, sep: str = ',') -> List[str]:
     """Split a string and remmove all whitespaces."""
     splitted = string.split(sep)
     return [s.strip() for s in splitted]
+
 
 def resolve_literals(string: str) -> str:
     # replace Literal[...] with a tuple (...)

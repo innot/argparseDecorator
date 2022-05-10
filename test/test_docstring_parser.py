@@ -1,3 +1,4 @@
+import argparse
 import unittest
 
 from argparsedecorator.argparse_decorator import Argument
@@ -55,6 +56,18 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(node.description)
         self.assertEqual("bar:test", node.arguments['foo'].help)
         self.assertEqual("baz:test", node.arguments['bar'].help)
+
+    def test_argument_suppress(self, foo=None):
+        """
+        :param foo: SUPPRESS this argument
+        """
+        ignore(foo)
+        node = ParserNode("test")
+        foo = Argument('foo')
+        node.add_argument(foo)
+
+        node.analyse_docstring(self.test_argument_suppress)
+        self.assertEqual(argparse.SUPPRESS, node.arguments['foo'].help)
 
     def test_alias(self):
         """

@@ -89,6 +89,17 @@ class MyTestCase(unittest.TestCase):
         self.assertIsNotNone(node.get_argument("a"))
         self.assertIsNone(node.get_argument("foo"))
 
+    def test_get_argument(self):
+        node = ParserNode("test")
+        node.add_argument(Argument("a"))
+        node.add_argument(Argument("-b"))
+        node.add_argument(Argument("--c"))
+        self.assertEqual("a", node.get_argument('a').name)
+        self.assertEqual("-b", node.get_argument('b').name)
+        self.assertEqual("--c", node.get_argument('c').name)
+        self.assertIsNone(node.get_argument('d'))
+
+
     def test_resolve_literals(self):
         self.assertEqual("", resolve_literals(""))
         self.assertEqual("foobar", resolve_literals("foobar"))

@@ -11,7 +11,15 @@ T = TypeVar('T')
 class Flag:
     """
     Marks the argument as a Flag.
+    A Flag starts with a single hyphen ´-´.
+    If the Flag does not require any arguments (just present or not present) add a ´=True` as its
+    default or add a `StoreTrue´ annotation.
 
+    .. code::
+        def cmd(someflag: Flag = True):
+        ...
+
+    See 'argparse Docs https://docs.python.org/3/library/argparse.html#name-or-flags'_
     """
     pass
 

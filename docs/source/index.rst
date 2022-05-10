@@ -11,7 +11,8 @@ Welcome to ArgParseDecorator's documentation!
    :caption: Contents:
 
    intro
-
+   usage
+   docstring
 
 
 Indices and tables

@@ -106,7 +106,7 @@ class ArgParseDecorator:
         """
         Parse a command line and execute it.
 
-        The 'base' should be supplied if the method implementing the command is a bound method,
+        The 'base' must be supplied if the method implementing the command is a bound method,
         i.e. having 'self' as the first argument. It is not required if the command is implemented
         with a function (unbound) or an inner function (already bound).
 
