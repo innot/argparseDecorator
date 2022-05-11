@@ -38,23 +38,25 @@ from .parsernode import ParserNode
 
 class ArgParseDecorator:
     """
-    Build python :class:'ArgumentParser' from decorated functions.
+    Build python
+    `ArgumentParser <https://docs.python.org/3/library/argparse.html#argumentparser-objects>`_
+    from decorated functions.
 
     It uses the signature and the annotations of the decorated class to determine all arguments
     and their types.
     It also uses the docstring to for the command description, the help strings for all arguments
     and some additional metadata that can not be expressed via annotations.
 
-    :param helpoption:  (Optional) Either 'help' to automatically create a help command, or
-        '-h' to automatically add a -h/--help argument to each command, or
-        'none' to disable any automatically generated help.
+    :param helpoption:  (Optional) Either `help` to automatically create a help command, or
+        `-h` to automatically add a -h/--help argument to each command, or
+        `none` to disable any automatically generated help.
         Defaults to 'help'
-    :param hyph_replace: string to be replaced by '-' in command names, defaults to '__'
+    :param hyph_replace: string to be replaced by ``-`` in command names, defaults to ``__``
     :param argparser_class: Class to be used for ArgumentParser,
-        defaults to :class:'NonExitingArgumentParser'
-    :type argparser_class: :class:'argparse.ArgumentParser' or subclass thereof.
+        defaults to :class:`argparsedecorator.nonexiting_argumentparser.NonExitingArgumentParser`
+    :type argparser_class: :class:`argparse.ArgumentParser` or subclass thereof.
     :param kwargs: Other arguments to be passed to the ArgumentParser,
-        e.g. 'description' or 'allow_abbrev'
+        e.g. `description` or `allow_abbrev`
 
     """
 
@@ -90,6 +92,7 @@ class ArgParseDecorator:
     def help(self, command: ZeroOrMore[str]) -> None:
         """
         Prints help for the given command.
+
         :param command: Name of the command to get help for
         :type command: list
         """
@@ -104,17 +107,19 @@ class ArgParseDecorator:
         """
         Parse a command line and execute it.
 
-        The 'base' must be supplied if the method implementing the command is a bound method,
-        i.e. having 'self' as the first argument. It is not required if the command is implemented
-        with a function (unbound) or an inner function (already bound).
+        The ``base`` must be supplied if the method implementing the command is a bound method,
+        i.e. having ``self`` as the first argument. It is not required if the command is implemented
+        as a function (unbound) or an inner function (already bound).
 
-        :param commandline: A string with a command and arguments (e.g. 'command --flag arg') or
+        :param commandline: A string with a command and arguments (e.g. ``command --flag arg``) or
             a list with the command name and its arguments as items
-            (e.g. ['command', '--flag', 'argument'])
+            (e.g. ``['command', '--flag', 'argument']``)
         :type commandline: String or list of stings
-        :param base: an object that is passed to commands as the 'self' argument, defaults to 'None'
-        :type base: the object the commands are bound to.
+        :param base: an object that is passed to commands as the ``self`` argument,
+            defaults to ``None``
         :return: anything the command function/method returns.
+        :raises ValueError: if the command function requires a ``self`` parameter, but no ``base``
+            argument was supplied.
         """
         argparser: ArgumentParser = self.argumentparser
         named_args = argparser.parse_args(commandline.split())
@@ -123,6 +128,12 @@ class ArgParseDecorator:
         args, kwargs = get_arguments_from_namespace(named_args, node)
 
         if node.bound_method and func != self.help:
+            if base is None:
+                # do not pass None as self - this will propably cause errors further
+                # down. Fail cleanly instead.
+                raise ValueError(
+                    f"Method {func.__name__} is a bound method and requires the "
+                    f"'base' (self) parameter to be set.")
             result = func(base, *args, **kwargs)
         else:
             result = func(*args, **kwargs)
@@ -150,8 +161,11 @@ class ArgParseDecorator:
     @property
     def argumentparser(self) -> ArgumentParser:
         """
-        The generated :class:'AttributeParser' object.
-        The property is read only
+        The generated
+        `ArgumentParser <https://docs.python.org/3/library/argparse.html#argumentparser-objects>`_
+        object.
+
+        This property is read only
         """
         argparser: ArgumentParser = self.rootnode.argumentparser
         if argparser is None:
@@ -165,9 +179,18 @@ class ArgParseDecorator:
     def command(self, *args: Union[str, Callable], **kwargs: Any) -> Callable:
         """
         Decorator to mark a method as an executable command.
-        :param args:
-        :param kwargs:
-        :return:
+
+        This takes the name of the decorated function and adds it to the internal command list.
+        It also analyses the signature and the docstring of the decorated function to gather
+        information about its arguments.
+
+
+
+        :param args: Optional arguments that are passed directly to the
+            ArgumentParser.add_subparser() method.
+        :param kwargs: Optional keyword arguments that are passed directly to the
+            ArgumentParser.add_subparser() method.
+        :return: The decorator function
         """
 
         #        @functools.wraps(f)
@@ -196,13 +219,13 @@ class ArgParseDecorator:
         the function signature and its annotations are not sufficient to accurately
         describe an argument. In this case the 'add_argument' decorator can be used.
         Any pararmeter to this decorator is passed directly to
-        'argparse.add_argument() https://docs.python.org/3/library/argparse.html#the-add-argument-method'
+        `argparse.add_argument() <https://docs.python.org/3/library/argparse.html#the-add-argument-method>`_
 
         The decorated function must have an argument of the same name or use \*args and \*\*kwargs
         arguments to retrieve the value of these arguments.
 
         Example
-        
+
         .. code-block:: python
 
             @parser.command
@@ -211,6 +234,12 @@ class ArgParseDecorator:
             def write(\*args, \*\*kwargs):
                 dest_file = args[0]
                 foo = kwargs['foo']
+
+        :param args: Optional arguments that are passed directly to the
+            ArgumentParser.add_argument() method.
+        :param kwargs: Optional keyword arguments that are passed directly to the
+            ArgumentParser.add_argument() method.
+        :return: The decorator function
 
         """
 

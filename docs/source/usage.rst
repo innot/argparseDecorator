@@ -56,11 +56,71 @@ With this a command can be executed like this
 
     raboof
 
-Using Annotations
+The ArgParseDecorator class
+---------------------------
+
+To use the argparseDecorator an instance of the ArgParseDecorator class has to be created.
+
+The two main methods of the ArgParseDecorator class are :meth:'ArgParseDecorator.command' and
+:meth:'ArgParseDecorator.execute'.
+
+Command is a Decorator that can mark any function or method as a command. There can be any number
+of decorated functions.
+
+Any such decorated function is called by ``execute(cmdstring)`` when the `cmdstring` contains the command.
+
+
+
+
+Subcommands
++++++++++++
+
+Sometimes it makes sense to split commands into multiple subcommands. This is supported by the
+argparseDecorator. To define a subcommand just add an underscore between the main command
+and the subcommand in the function name.
+
+For example the commands to switch an LED on or off could be implemented like this
+
+.. code-block:: python
+
+    @parser.command
+    def led_on():
+        ...
+
+    @parser.command
+    def led_off():
+        ...
+
+With this the argparseDecorator now understands the two commands ``led on`` and ``led off`` and the respective
+functions are called.
+
+.. code-block:: python
+
+    parser.execute("led on")
+
+Commands with Hyphens
++++++++++++++++++++++
+
+To create a command containing a hypen `-`, e.g. ``get-info ...`` a double underscore is used in the command name, e.g.
+
+.. code-block:: python
+
+    @parser.command
+    def get__info():
+        ...
+
+    parser.execute("get-info")
+
+
+
+
+Fuction Signature
 -----------------
 
-argparseDecorator makes heavy use (and propably misuse) of type_annotations_ to
-pass additional information to the ArgumentParser. For example the following
+argparseDecorator makes heavy use of type_annotations_ to pass additional information to the ArgumentParser.
+This includes a number of custom Types which are used to provide additional information about the arguments.
+
+For example the following
 command will add up a list of numbers or, if `--squared` is added to the command,
 will calculate the sum of the squares.
 
