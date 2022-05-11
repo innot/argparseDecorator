@@ -68,6 +68,7 @@ class MyTestCase(unittest.TestCase):
 
         node = apd.rootnode.get_node('cmd')
         args = node.arguments
+
         for name, arg in args.items():
             self.assertTrue(arg.optional)
             self.assertTrue(name.startswith("-"))
@@ -88,6 +89,7 @@ class MyTestCase(unittest.TestCase):
             return foo, bar, baz, bang
 
         node = apd.rootnode.get_node('cmd')
+
         args = node.arguments
         self.assertEqual("store_true", args["-foo"].action)
         self.assertEqual("store_true", args["-bar"].action)

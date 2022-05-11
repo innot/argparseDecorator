@@ -33,18 +33,18 @@ class Flag:  # pylint: disable=too-few-public-methods
     """
     Marks the argument as a Flag.
 
-    A Flag starts with a single hyphen ´-´.
+    A Flag starts with a single hyphen ``-``.
 
-    If the Flag does not require any arguments (just present or not present) add a ´=True` as its
-    default or add a :class:'StoreTrueAction' annotation.
+    If the Flag does not require any arguments (just present or not present) add a ``=False`` as its
+    default or add a :class:`.StoreTrueAction` annotation.
 
     .. code-block::
 
-        def cmd(f: Flag = True):
+        def cmd(f: Flag = False):
             return f
 
         result = parser.execute("cmd -f")  # result = True
-        result = parser.execute("cmd")       # result = False
+        result = parser.execute("cmd")     # result = False  (the default)
 
     See `argparse: name-or-flags <https://docs.python.org/3/library/argparse.html#name-or-flags>`_
     for details.
@@ -55,18 +55,18 @@ class Option:  # pylint: disable=too-few-public-methods
     """
     Marks the argument as an Option.
 
-    A Option starts with a double hyphen ´--´.
+    A Option starts with a double hyphen ``--``.
 
-    If the Option does not require any arguments (just present or not present) add a ´=True` as its
-    default or add a :class:'StoreTrueAction' annotation.
+    If the Option does not require any arguments (just present or not present) add a ``=False``
+    as its default or add a :class:`.StoreTrueAction` annotation.
 
     .. code-block::
 
-        def cmd(foo: Option = True):
+        def cmd(foo: Option = False):
             return foo
 
         result = parser.execute("cmd -foo")  # result = True
-        result = parser.execute("cmd")       # result = False
+        result = parser.execute("cmd")       # result = False  (the default)
 
     See `argparse: name-or-flags <https://docs.python.org/3/library/argparse.html#name-or-flags>`_
     for details.

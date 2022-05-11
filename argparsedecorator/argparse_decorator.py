@@ -211,7 +211,7 @@ class ArgParseDecorator:
         return decorator
 
     def add_argument(self, *args: str, **kwargs: Any) -> Callable:
-        """
+        r"""
         Add an argument to the command.
 
         This is an alternative way to add arguments to a function.
@@ -224,14 +224,12 @@ class ArgParseDecorator:
         The decorated function must have an argument of the same name or use \*args and \*\*kwargs
         arguments to retrieve the value of these arguments.
 
-        Example
-
-        .. code-block:: python
+        Example::
 
             @parser.command
             @parser.add_argument('dest_file', type=argparse.FileType('r', encoding='latin-1'))
             @parser.add_argument('--foo', '-f')
-            def write(\*args, \*\*kwargs):
+            def write(*args, **kwargs):
                 dest_file = args[0]
                 foo = kwargs['foo']
 
@@ -268,8 +266,8 @@ class ArgParseDecorator:
 def get_arguments_from_namespace(
         args: Namespace,
         node: ParserNode) -> Tuple[List[str], Dict[str, Any]]:
-    """
-    Convert the Namespace object returned by parse_args() into  \*args, \*\*kwargs objects.
+    r"""
+    Convert the Namespace object returned by parse_args() into  \*args, \**kwargs objects.
     """
     all_args = vars(args)
 

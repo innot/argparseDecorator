@@ -25,6 +25,7 @@ class MyTestCase(unittest.TestCase):
         node = ParserNode("test")
         self.assertEqual("test", node.title)
         with self.assertRaises(AttributeError):
+            # noinspection PyPropertyAccess
             node.title = "foobar"  # read only property
             self.fail()
 
@@ -33,6 +34,7 @@ class MyTestCase(unittest.TestCase):
             tmpnode = tmpnode.get_node(f"{i}")
         self.assertEqual(node, tmpnode.root)
         with self.assertRaises(AttributeError):
+            # noinspection PyPropertyAccess
             node.root = tmpnode  # read only property
             self.fail()
 
@@ -49,7 +51,8 @@ class MyTestCase(unittest.TestCase):
         # child
         argparser = tmpnode.argumentparser
         self.assertIsNotNone(argparser)
-        self.assertTrue(hasattr(argparser, "parse_args"))  # children have _SubParserAction instead of ArgumentParser
+        self.assertTrue(hasattr(argparser,
+                                "parse_args"))  # children have _SubParserAction instead of ArgumentParser
 
         # function
         def test(arg1=None, arg2=None):
@@ -99,7 +102,6 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual("--c", node.get_argument('c').name)
         self.assertIsNone(node.get_argument('d'))
 
-
     def test_resolve_literals(self):
         self.assertEqual("", resolve_literals(""))
         self.assertEqual("foobar", resolve_literals("foobar"))
@@ -112,12 +114,15 @@ class MyTestCase(unittest.TestCase):
         bar = Literal["bar"]
         foobar = Literal[foo, bar]
         self.assertCountEqual(["foo", "bar"], eval(resolve_literals(str(foobar)), globals()))
-        self.assertCountEqual(["foo", "bar", "baz"], eval(resolve_literals("'foo', Literal['bar'], 'baz'")))
+        self.assertCountEqual(["foo", "bar", "baz"],
+                              eval(resolve_literals("'foo', Literal['bar'], 'baz'")))
 
     def test_split_union(self):
         self.assertListEqual(["foo"], split_union("foo"))
         self.assertListEqual(["foo", "bar"], split_union("foo, bar"))
         self.assertListEqual(["bar(1,2,3)"], split_union("bar(1,2,3)"))
         self.assertListEqual(["foo", "bar(1,2,3)"], split_union("foo, bar(1,2,3)"))
-        self.assertListEqual(["foo", "bar(1,2,3, baz['test'])"], split_union("foo, bar(1,2,3, baz['test'])"))
-        self.assertListEqual(["bar{1,2,3}", "baz['test'])"], split_union("bar{1,2,3} , baz['test'])"))
+        self.assertListEqual(["foo", "bar(1,2,3, baz['test'])"],
+                             split_union("foo, bar(1,2,3, baz['test'])"))
+        self.assertListEqual(["bar{1,2,3}", "baz['test'])"],
+                             split_union("bar{1,2,3} , baz['test'])"))

@@ -53,11 +53,4 @@ argparsedecorator.argument module
    :undoc-members:
    :show-inheritance:
 
-argparsedecorator.utils module
-------------------------------
-
-.. automodule:: argparsedecorator.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
