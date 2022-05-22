@@ -2,6 +2,7 @@ About
 =====
 
 .. warning::
+
     this program is not finished. It was uploaded to GitHub as a backup.
     It is not yet feature complete and some parts may or may not work.
 
@@ -9,9 +10,38 @@ argparseDecorator is a tool to ease working with the
 argparse_ library to build custom command line interpreters.
 
 Instead of setting up the 'ArgumentParser' object by hand and then adding
-all the required arguments the argparseDecorator supplies a custom decorator_
-to mark any function as a command and to generate the ArgumentParser
-from the function signature.
+subcommands and all the required arguments the argparseDecorator supplies
+a custom decorator_ to mark any function as a command and to generate the
+ArgumentParser from the function signature.
+
+With this it is quite easy to make command line interfaces like, for example, a shell like cli:
+
+.. code-block:: python
+
+    from argparseDecorator import *
+
+    cli = ArgParseDecorator()
+
+    @cli.command
+    def ls(arg1, arg2, arg3)
+        ...
+
+    @cli.command
+    def mv(...)
+        ...
+
+    @cli.command
+    def cp(...)
+
+    ...
+
+    cmdline = input()
+    cli.execute(cmdline)
+
+
+The ArgParseDecorator uses both the signature of the decorated function as well as its
+docstring to infer information, metadata and description of the function arguments and
+passes them to the underlying ArgumentParser.
 
 Here is an example for using ArgParseDecorator to create a hypothetical 'ls' command:
 
@@ -20,9 +50,9 @@ Here is an example for using ArgParseDecorator to create a hypothetical 'ls' com
     from __future__ import annotations      # required for Python 3.7 - 3.9. Not required for Python 3.10+
     from argparsedecorator import *         # import the ArgParseDecorator API
 
-    parser = ArgParseDecorator()
+    cli = ArgParseDecorator()
 
-    @parser.command
+    @cli.command
     def ls(
            files: ZeroOrMore[str],
            a: Flag = False,  # create '-a' flag that is 'False' if '-a' is not in the command line.
@@ -57,7 +87,7 @@ Now a command line can be parsed and executed like this:
 
 .. code-block:: python
 
-        result = parser.execute("ls -a -c 2 --sort rev --ignore *.log")
+        result = cli.execute("ls -a -c 2 --sort rev --ignore *.log")
 
 ArgParseDecorator uses the docstring of the decorated function to get a help string for the command
 and it also parses Sphinx_ style directives to provide help strings for arguments as well as additional
@@ -65,7 +95,7 @@ metadata that can not be written as annotations.
 
 The information provided by the docstring is used by the built-in help command:
 
-.. code:: python
+.. code-block:: python
 
     parser.execute("help ls")
 
