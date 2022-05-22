@@ -70,6 +70,20 @@ class MyTestCase(unittest.TestCase):
         self.assertTrue(parser.execute("cmd --foo"))
         self.assertFalse(parser.execute("cmd"))
 
+    def inner_function(self):
+        parser = ArgParseDecorator()
+        self.parser = parser
+
+        @parser.command
+        def cmd(arg):
+            return arg, self.parser
+
+    def test_inner_function(self):
+        self.inner_function()  # set up parser
+        result1, result2 = self.parser.execute("cmd foo")
+        self.assertEqual("foo", result1)
+        self.assertEqual(self.parser, result2)
+
 
 if __name__ == '__main__':
     unittest.main()

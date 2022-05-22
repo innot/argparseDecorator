@@ -1,17 +1,17 @@
 Introduction
 ============
 
-argparseDecorator is a tool to ease working with the
+argparseDecorator is a tool to ease working with the Python
 argparse_ library to build custom command line interpreters.
 
 Instead of setting up the 'ArgumentParser' object by hand and then adding
 all the required arguments the argparseDecorator supplies a custom decorator_
-to mark any function as a command and to generate the ArgumentParser
+to mark functions as a command and to generate the ArgumentParser
 from the function signature.
 
 Here is a simple example of a command that reverses the input:
 
-.. code:: python
+.. code-block:: python
 
     >>> from argparsedecorator import *
     >>> parser = ArgParseDecorator()

@@ -43,4 +43,4 @@ class NonExitingArgumentParser(argparse.ArgumentParser):
     # Overriding this method to disregard a normal exit and to raise an Exception for errors.
     def exit(self, status=0, message=None):
         if status != 0:
-            raise argparse.ArgumentError(None, message=message)
+            raise SyntaxError(message=message)

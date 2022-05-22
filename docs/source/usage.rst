@@ -13,19 +13,19 @@ Once argparseDecorator has been installed it can be used like this.
 Importing argparseDecorator
 ---------------------------
 
-First, if you are using a python version previous to 3.10 it is a good idea to first add
+First, if you are using a python version previous to 3.10 it is a good idea to add
 
-.. code:: python
+.. code-block:: python
 
     from __future__ import annotations
 
-to your file. This ensures that the annotations used by the argparseDecorator are handled as strings
-and not as Python Types. This is not only faster, but some (mis)uses of annotations by the decorator
-do not cause errors.
+at the top of your file. This ensures that the annotations used by the argparseDecorator are handled as
+strings and not as Python Types. This is not only faster, but some uses of annotations by the decorator
+will cause errors otherwise.
 
 Next the argparseDecorator is imported. The best way is to
 
-.. code:: python
+.. code-block:: python
 
     from argparseDecorator import *
 
@@ -37,9 +37,9 @@ Simple example
 --------------
 
 Now the decorator can be instantiated and its command decorator can be used to mark a function as a command.
-In this short example the command ``reverse``, which takes a single argument ``word`` is defined.
+In this short example the command ``reverse``, which takes a single argument ``word``, is created.
 
-.. code:: python
+.. code-block:: python
 
     parser = ArgParseDecorator()
 
@@ -50,7 +50,7 @@ In this short example the command ``reverse``, which takes a single argument ``w
 
 With this a command can be executed like this
 
-.. code:: python
+.. code-block:: python
 
     parser.execute("reverse foobar")
 
@@ -59,15 +59,28 @@ With this a command can be executed like this
 The ArgParseDecorator class
 ---------------------------
 
-To use the argparseDecorator an instance of the ArgParseDecorator class has to be created.
+To use the argparseDecorator an instance of the :class:`~argparsedecorator.argparse_decorator.ArgParseDecorator`
+class has to be created.
 
-The two main methods of the ArgParseDecorator class are :meth:'ArgParseDecorator.command' and
-:meth:'ArgParseDecorator.execute'.
+.. code-block:: python
 
-Command is a Decorator that can mark any function or method as a command. There can be any number
+    parser = ArgParseDecorator()
+
+
+The two main methods of the ArgParseDecorator class are
+:meth:`~argparsedecorator.argparse_decorator.ArgParseDecorator.command` and
+:meth:`~argparsedecorator.argparse_decorator.ArgParseDecorator.execute`.
+
+*command* is a Decorator that can mark any function or method as a command. There can be any number
 of decorated functions.
 
-Any such decorated function is called by ``execute(cmdstring)`` when the `cmdstring` contains the command.
+.. code-block:: python
+
+    @parser.command
+    def foobar(word):
+         ...
+
+Any such decorated function is called by *execute(cmdstring)* when the *cmdstring* contains the command.
 
 
 
@@ -316,6 +329,7 @@ will have a help output of
 .. code-block:: console
 
     usage:  foobar [--datetime DATETIME DATETIME]
+
     optional arguments:
       --datetime DATETIME DATETIME
 
@@ -340,6 +354,103 @@ will have a help output of
     The number of metavar names must match the number of parameters an argument takes.
 
 
+Executing a Command Line
+------------------------
+
+Once the :class:`~argparsedecorator.argparse_decorator.ArgParseDecorator` has been set up with all decorated
+functions or methods it can be used to execute arbitrary command lines.
+
+This is done by calling the :meth:`~argparsedecorator.argparse_decorator.ArgParseDecorator.execute` method
+with a command line string. The command line can come directly from the prompt like in the example below, or it
+could come for example from a ssh connection.
+
+.. code-block:: python
+
+    cli = ArgParseDecorator()
+
+    ...
+
+    cmdline = input()
+    cli.execute(cmdline)
+
+
+Internally the command line is parsed by the underlying argparse.ArgumentParser instance and, if there are no errors,
+the command function (the first word of the command line) is called with all arguments.
+
+If there were errors on the command line, e.g. an unknown command or the wrong number of arguments, a
+*SyntaxError* exception is raised. Before raising the execption the *ArgumentParser* will output a descriptive
+message to `stderr <https://docs.python.org/3/library/sys.html#sys.stderr>`_, so usually the exception can be ignored.
+
+.. code-block:: python
+
+    while True:
+        try:
+            cmdline = input()
+            cli.execute(cmdline)
+        except SyntaxError:
+            pass
+
+
+Using ArgParseDecorator in Classes
+++++++++++++++++++++++++++++++++++
+
+When using this library to decorate methods within a class there is one caveat.
+
+.. code-block:: python
+
+    class MyCLI:
+
+        cli = ArgParseDecorator()
+
+        @command
+        def cmd(self, arg1, arg2, ...):
+            ...
+
+To mark methods as commands the *ArgParseDecorator* must be instantiated as a `class variable`_.
+But as a class variable it does not have access to any data from a *MyCLI* instance, especially not to the
+*self* reference.
+
+To correctly call the *cmd* function from :meth:`~argparsedecorator.argparse_decorator.ArgParseDecorator.execute`
+a reference to *self* must be given, e.g. like this:
+
+.. code-block:: python
+
+    class MyCLI:
+
+        cli = ArgParseDecorator()
+
+        @command
+        def cmd(self, arg1, arg2, ...):
+            ...
+
+        def execute(self, cmdline):
+            cli.execute(cmdline, self)
+
+Note how cli.execute() is wrapped in a method and how it passes a reference to *self* to the *ArgParseDecortor*.
+
+An alternative method would be the use of inner functions like this:
+
+.. code-block:: python
+
+    class MyCLI:
+
+        def __init__(self):
+            self.setup_cli()
+
+        def setup_cli(self):
+
+            cli = ArgParseDecorator()
+            self.cli = cli              # store as instance variable
+
+            @command
+            def cmd(arg1, arg2, ...)
+                self.do_something_with(arg1)
+
+        def execute(self, cmdline)
+            self.cli.execute(cmdline)
+
+
 .. _eval: https://docs.python.org/3/library/functions.html#eval
 .. _type_annotations: https://docs.python.org/3/library/typing.html
 .. _docstring: https://peps.python.org/pep-0257/
+.. _class variable: https://docs.python.org/3/tutorial/classes.html#class-and-instance-variables

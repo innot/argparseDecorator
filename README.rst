@@ -1,7 +1,7 @@
 About
 =====
 
-.. warning::
+.. note::
 
     this program is not finished. It was uploaded to GitHub as a backup.
     It is not yet feature complete and some parts may or may not work.
