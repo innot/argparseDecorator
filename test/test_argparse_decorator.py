@@ -10,8 +10,8 @@
 
 from __future__ import annotations
 
+import io
 import unittest
-from argparse import ArgumentError
 from typing import Literal
 
 from argparsedecorator.annotations import *
@@ -148,7 +148,7 @@ class MyTestCase(unittest.TestCase):
         self.assertCountEqual(["rock", "paper", "scissors"], args["arg"].choices)
         self.assertEqual("rock", apd.execute("cmd rock"))
         with self.assertRaises(ArgumentError):
-            apd.execute("cmd foobar")
+            apd.execute("cmd foobar", error_handler=None)
 
     def test_with_deco_argument(self):
         apd = ArgParseDecorator()
@@ -156,10 +156,10 @@ class MyTestCase(unittest.TestCase):
         @apd.command()
         @apd.add_argument("foo")
         @apd.add_argument("bar")
-        def cmd(*args: str, **kwargs: Any) -> Tuple[str]:
-            return args
+        def cmd(*args: str, **kwargs: Any) -> Tuple[Tuple[str], Dict[Any]]:
+            return args, kwargs
 
-        result = apd.execute("cmd foo bar")
+        result, _ = apd.execute("cmd foo bar")
         self.assertEqual("foo", result[0])
         self.assertEqual("bar", result[1])
 
@@ -184,6 +184,43 @@ class MyTestCase(unittest.TestCase):
         result = self.parser.execute("foobar 101", self)
         self.assertEqual(101, result)
         self.assertEqual(101, self.foobar_arg1)
+
+    def test_output_redirect(self):
+        parser = ArgParseDecorator()
+
+        @parser.command
+        def echo(text: str):
+            print(text)
+
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        parser.execute("echo foobar", stdout=stdout, stderr=stderr)
+        self.assertTrue(stdout.getvalue().startswith("foobar"))  # ignore any cr/lf
+
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        parser.execute("help echo", stdout=stdout, stderr=stderr)
+        self.assertTrue(len(stdout.getvalue()) > 10)  # more than a line feed
+
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        parser.execute("invalid", stdout=stdout,
+                       stderr=stderr)  # missing argument should cause an error
+        self.assertTrue(len(stderr.getvalue()) > 10)
+
+    def test_input_redirect(self):
+        parser = ArgParseDecorator()
+
+        @parser.command
+        def inp():
+            text = input()
+            print(text)
+
+        stdin = io.StringIO("foobar\n")
+        stdout = io.StringIO()
+
+        parser.execute("inp", stdin=stdin, stdout=stdout)
+        self.assertTrue(stdout.getvalue().startswith("foobar"))
 
 
 if __name__ == '__main__':

@@ -35,12 +35,18 @@
 """
 
 import asyncio
-from argparse import ArgumentParser, Namespace
-from typing import List, Union, Callable, Any, Type, Optional, Dict, Tuple
+import sys
+from argparse import ArgumentParser, Namespace, ArgumentError
+from typing import List, Union, Callable, Any, Type, Optional, Dict, Tuple, TextIO
 
 from .annotations import ZeroOrMore  # for the builtin help command
 from .argument import Argument
 from .parsernode import ParserNode
+
+
+def default_error_handler(exc: ArgumentError):
+    """Default error handler that just prints the error message to stderr."""
+    sys.stderr.write(str(exc))
 
 
 class ArgParseDecorator:
@@ -85,20 +91,21 @@ class ArgParseDecorator:
 
         self.hyphen_replacement = hyph_replace
 
-        self.rootnode: ParserNode = ParserNode(None, **kwargs)
+        self._rootnode: ParserNode = ParserNode(None, **kwargs)
+
         if argparser_class:
             if isinstance(argparser_class, ArgumentParser):
-                self.rootnode.argparser_class = argparser_class
+                self._rootnode.argparser_class = argparser_class
             else:
                 raise TypeError("argparser_class not a subclass of ArgumentParser")
 
         if helpoption == "help":
             # add the help command as a node to the tree
-            node: ParserNode = self.rootnode.get_node("help")
+            node: ParserNode = self._rootnode.get_node("help")
             node.function = self.help
 
         if helpoption == "None":
-            self.rootnode.add_help = False
+            self._rootnode.add_help = False
 
     @property
     def argumentparser(self) -> ArgumentParser:
@@ -109,12 +116,26 @@ class ArgParseDecorator:
 
         This property is read only
         """
-        argparser: ArgumentParser = self.rootnode.argumentparser
+        argparser: ArgumentParser = self._rootnode.argumentparser
         if argparser is None:
-            self.rootnode.generate_parser(None)
-            argparser = self.rootnode.argumentparser
+            self._rootnode.generate_parser(None)
+            argparser = self._rootnode.argumentparser
 
         return argparser
+
+    @property
+    def rootnode(self) -> ParserNode:
+        """
+        The root node of the :class:`~argparsedecorator.parsernode.ParserNode` tree of commands.
+        While the tree can be modified care must be taken to regenerate it after modifications by
+        calling :meth:`~argparsedecorator.parsernode.ParserNode.generate_parser` before calling
+        :meth:`execute`.
+        
+        This property is read only.
+
+        :return: The root node of the *ParserNode* tree.
+        """
+        return self._rootnode
 
     #    @doublewrap
     #    def command(self, f: Callable):
@@ -191,7 +212,11 @@ class ArgParseDecorator:
 
         return decorator
 
-    def execute(self, commandline: str, base=None) -> Any:
+    def execute(self, commandline: str, base: Optional = None,
+                error_handler=default_error_handler,
+                stdout: TextIO = None,
+                stderr: TextIO = None,
+                stdin: TextIO = None) -> Optional:
         """
         Parse a command line and execute it.
 
@@ -202,29 +227,69 @@ class ArgParseDecorator:
             implemented as a function (unbound) or an inner function (already bound).
 
         :param commandline: A string with a command and arguments (e.g. *"command --flag arg"*)
-        :param base: an object that is passed to commands as the *self* argument,
-            defaults to *None*
+        :param base: an object that is passed to commands as the *self* argument.
+            Required if any command method has *self*, not required otherwise.
+        :param error_handler: callback function to handle errors when parsing the command line.
+            The handler takes a single argument with a ``ArgumentError`` exception.
+            The default is a function that just prints the error the `stderr`.\n
+            If set to *None* parsing errors will result in an exception.
+        :param stdout: Set to redirect the output of *ArgumentParser* (e.g. help texts) and the
+            called command function to a different output, e.g a ssh stream.\n
+            Optional, default is `sys.stdout`
+        :param stderr: Set to redirect error messages from the 'ArgumentParser' and the
+            called command function to a different output, e.g a ssh stream.\n
+            Optional, default is `sys.stderr`
+        :param stdin: Set to redirect the input of the called command function to
+            an input other than the current terminal, e.g a ssh stream.\n
+            Optional, default is `sys.stdin`
+
         :return: anything the command function/method returns.
         :raises ValueError: if the command function requires a *self* parameter, but no *base*
             argument was supplied.
-        :raises SyntaxError: if the given command line contains errors.
+        :raises ArgumentError: if the given command line contains errors and the error_handler
+            is set to 'None'.
         """
-        argparser: ArgumentParser = self.argumentparser
-        named_args = argparser.parse_args(commandline.split())
-        func: Callable = named_args.func
-        node: ParserNode = named_args.node
-        args, kwargs = get_arguments_from_namespace(named_args, node)
+        old_stdin = sys.stdin
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        result = None
 
-        if node.bound_method and func != self.help:
-            if base is None:
-                # do not pass None as self - this will propably cause errors further
-                # down. Fail cleanly instead.
-                raise ValueError(
-                    f"Method {func.__name__} is a bound method and requires the "
-                    f"'base' (self) parameter to be set.")
-            result = func(base, *args, **kwargs)
-        else:
-            result = func(*args, **kwargs)
+        try:
+            # redirect input and output if required
+            if stdin:
+                sys.stdin = stdin
+            if stdout:
+                sys.stdout = stdout
+            if stderr:
+                sys.stderr = stderr
+
+            argparser: ArgumentParser = self.argumentparser
+            named_args = argparser.parse_args(commandline.split())
+            func: Callable = named_args.func
+            node: ParserNode = named_args.node
+            args, kwargs = get_arguments_from_namespace(named_args, node)
+
+            if node.bound_method and func != self.help:
+                if base is None:
+                    # do not pass None as self - this will propably cause errors further
+                    # down. Fail cleanly instead.
+                    raise ValueError(
+                        f"Method {func.__name__} is a bound method and requires the "
+                        f"'base' (self) parameter to be set.")
+                result = func(base, *args, **kwargs)
+            else:
+                result = func(*args, **kwargs)
+
+        except ArgumentError as err:
+            if error_handler:
+                error_handler(err)
+            else:
+                raise err  # just pass the exception to the caller
+        finally:
+            # restore in- and output
+            sys.stdin = old_stdin
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
 
         return result
 
@@ -253,10 +318,10 @@ class ArgParseDecorator:
         :param command: Name of the command to get help for
         :type command: list
         """
-        node = self.rootnode
+        node = self._rootnode
         if command:
-            if self.rootnode.has_node(command):
-                node = self.rootnode.get_node(command)
+            if self._rootnode.has_node(command):
+                node = self._rootnode.get_node(command)
         argparser = node.argumentparser
         argparser.print_help()
 
@@ -270,7 +335,7 @@ class ArgParseDecorator:
         fullcmd = func.__name__
         fullcmd = fullcmd.replace(self.hyphen_replacement, '-')
         parts = fullcmd.split('_')
-        node: ParserNode = self.rootnode.get_node(parts)
+        node: ParserNode = self._rootnode.get_node(parts)
         return node
 
 

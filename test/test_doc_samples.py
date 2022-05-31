@@ -8,7 +8,9 @@
 
 from __future__ import annotations
 
+import io
 import unittest
+from argparse import ArgumentError
 
 from argparsedecorator import *
 
@@ -83,6 +85,32 @@ class MyTestCase(unittest.TestCase):
         result1, result2 = self.parser.execute("cmd foo")
         self.assertEqual("foo", result1)
         self.assertEqual(self.parser, result2)
+
+    def test_error_handler(self):
+        stdout = io.StringIO()
+
+        def my_error_handler(err: ArgumentError):
+            print(str(err))  # output the error message to stdout instead of stderr
+
+        cli = ArgParseDecorator()
+
+        cli.execute("command", error_handler=my_error_handler, stdout=stdout)
+        self.assertTrue(len(stdout.getvalue()) > 10)
+
+    def test_input_redirect(self):
+        cli = ArgParseDecorator()
+        my_stdin = io.StringIO("yes")
+        stdout = io.StringIO()
+
+        @cli.command
+        def delete():
+            print("type 'yes' to confirm that you want to delete everything")
+            result = input()
+            if result == "yes":
+                print("you have chosen 'yes'")
+
+        cli.execute("delete", stdin=my_stdin, stdout=stdout)
+        self.assertEqual("you have chosen 'yes'", stdout.getvalue().splitlines()[1])
 
 
 if __name__ == '__main__':

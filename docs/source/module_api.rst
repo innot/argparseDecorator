@@ -36,10 +36,13 @@ argparsedecorator.nonexiting\_argumentparser module
    :show-inheritance:
 
 Internal Modules
-================
+----------------
+
+These modules are not part of the *ArgParseDecorator* API, but they can be used obtain information
+about the command tree or to implement other methods of adding Commands to the internal command tree.
 
 argparsedecorator.parsernode module
------------------------------------
++++++++++++++++++++++++++++++++++++
 
 .. automodule:: argparsedecorator.parsernode
    :members:
@@ -47,7 +50,7 @@ argparsedecorator.parsernode module
    :show-inheritance:
 
 argparsedecorator.argument module
----------------------------------
++++++++++++++++++++++++++++++++++
 
 .. automodule:: argparsedecorator.argument
    :members:

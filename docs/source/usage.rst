@@ -83,8 +83,6 @@ of decorated functions.
 Any such decorated function is called by *execute(cmdstring)* when the *cmdstring* contains the command.
 
 
-
-
 Subcommands
 +++++++++++
 
@@ -125,10 +123,67 @@ To create a command containing a hypen `-`, e.g. ``get-info ...`` a double under
     parser.execute("get-info")
 
 
+Using ArgParseDecorator to Decorate Class Methods
++++++++++++++++++++++++++++++++++++++++++++++++++
+
+When using this library to decorate methods within a class there is one caveat.
+
+.. code-block:: python
+
+    class MyCLI:
+
+        cli = ArgParseDecorator()
+
+        @command
+        def cmd(self, arg1, arg2, ...):
+            ...
+
+To mark methods as commands the *ArgParseDecorator* must be instantiated as a `class variable`_.
+But as a class variable it does not have access to any data from a *MyCLI* instance, especially not to the
+*self* reference.
+
+To correctly call the *cmd* function from :meth:`~argparsedecorator.argparse_decorator.ArgParseDecorator.execute`
+a reference to *self* must be given, e.g. like this:
+
+.. code-block:: python
+
+    class MyCLI:
+
+        cli = ArgParseDecorator()
+
+        @command
+        def cmd(self, arg1, arg2, ...):
+            ...
+
+        def execute(self, cmdline):
+            cli.execute(cmdline, self)
+
+Note how cli.execute() is wrapped in a method and how it passes a reference to *self* to the *ArgParseDecortor*.
+
+An alternative method would be the use of inner functions like this:
+
+.. code-block:: python
+
+    class MyCLI:
+
+        def __init__(self):
+            self.setup_cli()
+
+        def setup_cli(self):
+
+            cli = ArgParseDecorator()
+            self.cli = cli              # store as instance variable
+
+            @command
+            def cmd(arg1, arg2, ...)
+                self.do_something_with(arg1)
+
+        def execute(self, cmdline)
+            self.cli.execute(cmdline)
 
 
-Fuction Signature
------------------
+Function Signature
+------------------
 
 argparseDecorator makes heavy use of type_annotations_ to pass additional information to the ArgumentParser.
 This includes a number of custom Types which are used to provide additional information about the arguments.
@@ -374,83 +429,98 @@ could come for example from a ssh connection.
     cli.execute(cmdline)
 
 
-Internally the command line is parsed by the underlying argparse.ArgumentParser instance and, if there are no errors,
+Internally the command line is parsed by the underlying `argparse.ArgumentParser`_ instance and, if there are no errors,
 the command function (the first word of the command line) is called with all arguments.
 
-If there were errors on the command line, e.g. an unknown command or the wrong number of arguments, a
-*SyntaxError* exception is raised. Before raising the execption the *ArgumentParser* will output a descriptive
-message to `stderr <https://docs.python.org/3/library/sys.html#sys.stderr>`_, so usually the exception can be ignored.
+Error Handling
+++++++++++++++
+
+If there is an error parsing the command line (e.g. invalid commands, illegal arguments etc.) an error message is
+written to `stderr <https://docs.python.org/3/library/sys.html#sys.stderr>`_.
+
+If a more involved error handling is required, e.g. to translate the error messages or to
+do some formatting on them, a special error handler function can be given to
+:meth:`~argparsedecorator.argparse_decorator.ArgParseDecorator.execute` that is called
+whenever an error occurs.
+
+The error handler function is called with one argument , an ``argparse.ArgumentError`` exception object.
+The string representation of the exception contains the full error message.
+
+.. code-block:: python
+
+    def my_error_handler(err: argparse.ArgumentError):
+        print(str(err))     # output the error message to stdout instead of stderr
+
+    cli = ArgParseDecorator()
+
+    cli.execute("command", error_handler=my_error_handler)  # "command" does not exist causing an error message
+
+The error_handler can be explicitly set to *None*. In this case no error message is output but instead an
+``argparse.ArgumentError`` is raised which can be caught and acted upon.
 
 .. code-block:: python
 
     while True:
         try:
             cmdline = input()
-            cli.execute(cmdline)
-        except SyntaxError:
-            pass
+            cli.execute(cmdline, error_handler=None)
+        except ArgumentError as err:
+            print(str(err))
 
 
-Using ArgParseDecorator in Classes
-++++++++++++++++++++++++++++++++++
+Redirecting Output
+++++++++++++++++++
 
-When using this library to decorate methods within a class there is one caveat.
+When executing a command line all output (e.g. help messages) is written to the default *stdout* stream and all error
+messages (e.g. invalid syntax) is written to the *stderr* stream. These are usually the
+`stdout <https://docs.python.org/3/library/sys.html#sys.stdout>`_ and
+`stderr <https://docs.python.org/3/library/sys.html#sys.stderr>`_ streams of the shell from where python was started.
 
-.. code-block:: python
+As a typical use case for a CLI implemented with *ArgParseDecorator* is some kind of remote connection, for example
+a ssh server implementation, there must be a way to redirect the output of the *ArgumentParser* to the
+remote connection.
 
-    class MyCLI:
-
-        cli = ArgParseDecorator()
-
-        @command
-        def cmd(self, arg1, arg2, ...):
-            ...
-
-To mark methods as commands the *ArgParseDecorator* must be instantiated as a `class variable`_.
-But as a class variable it does not have access to any data from a *MyCLI* instance, especially not to the
-*self* reference.
-
-To correctly call the *cmd* function from :meth:`~argparsedecorator.argparse_decorator.ArgParseDecorator.execute`
-a reference to *self* must be given, e.g. like this:
+This can be done by passing `TextIO <https://docs.python.org/3/library/io.html#text-i-o>`_ Streams for stdout and
+stderr to the :meth:`~argparsedecorator.argparse_decorator.ArgParseDecorator.execute` method.
+This method will then redirect *sys.stdout* and *sys.sterr* to the given stream(s) before calling *ArgumentParser*
+and the command function. After the command has been called and before returning to the caller *sys.stdout* and
+*sys.stderr* are restored to their original values.
 
 .. code-block:: python
 
-    class MyCLI:
+    cli = ArgParseDecorator()
 
-        cli = ArgParseDecorator()
+    stdout = Buffered
 
-        @command
-        def cmd(self, arg1, arg2, ...):
-            ...
+    @command
+    def echo(text: str):
+        print(text)
 
-        def execute(self, cmdline):
-            cli.execute(cmdline, self)
+    cli.execute("echo foobar", stdout=SomeStream)
 
-Note how cli.execute() is wrapped in a method and how it passes a reference to *self* to the *ArgParseDecortor*.
+Redirecting Input
++++++++++++++++++
 
-An alternative method would be the use of inner functions like this:
+If any commands require further user input, e.g. for confirmation checks, the
+`stdin <https://docs.python.org/3/library/sys.html#sys.stdin>`_ can also be redirected to a different stream:
 
 .. code-block:: python
 
-    class MyCLI:
+    cli = ArgParseDecorator()
+    my_stdin = io.StringIO("yes")
 
-        def __init__(self):
-            self.setup_cli()
+    @cli.command
+    def delete():
+        print("type 'yes' to confirm that you want to delete everything")
+        result = input()
+        if result == "yes":
+            print("you have chosen 'yes'")
 
-        def setup_cli(self):
-
-            cli = ArgParseDecorator()
-            self.cli = cli              # store as instance variable
-
-            @command
-            def cmd(arg1, arg2, ...)
-                self.do_something_with(arg1)
-
-        def execute(self, cmdline)
-            self.cli.execute(cmdline)
+    cli.execute("delete", stdin=my_stdin)
 
 
 .. _eval: https://docs.python.org/3/library/functions.html#eval
 .. _type_annotations: https://docs.python.org/3/library/typing.html
 .. _docstring: https://peps.python.org/pep-0257/
 .. _class variable: https://docs.python.org/3/tutorial/classes.html#class-and-instance-variables
+.. _argparse.ArgumentParser: https://docs.python.org/3/library/argparse.html
