@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import unittest
 from argparse import FileType
 from typing import Union, Literal
@@ -9,9 +10,13 @@ from argparsedecorator.argparse_decorator import Argument
 from argparsedecorator.argparse_decorator import ParserNode
 
 
+class MyAction(argparse.Action):
+    pass
+
+
 class TestSignatureParser(unittest.TestCase):
 
-    def test_analyse_signture(self):
+    def test_analyse_signature_simple(self):
         def test1(arg1):
             return arg1
 
@@ -21,21 +26,24 @@ class TestSignatureParser(unittest.TestCase):
         self.assertEqual('arg1', arg.name)
         self.assertIsNone(arg.type)
 
-        def test2(arg1: Flag = True, arg2: Option = False):
+    def test_analyse_signature_flag_option(self):
+        def test(arg1: Flag = True, arg2: Option = False):
             return arg1, arg2
 
         node = ParserNode("test")
-        node.analyse_signature(test2)
+        node.analyse_signature(test)
         arg: Argument = node.arguments['-arg1']
         self.assertEqual("store_false", arg.action)
         arg: Argument = node.arguments['--arg2']
         self.assertEqual("store_true", arg.action)
 
-        def test3(arg1: Union[Exactly3[int], StoreConstAction] = 1, arg2: AppendConstAction = "foo"):
+    def test_analyse_signature_actions(self):
+        def test1(arg1: Union[Exactly3[int], StoreConstAction] = 1,
+                  arg2: AppendAction = "foo"):
             return arg1, arg2
 
         node = ParserNode("test")
-        node.analyse_signature(test3)
+        node.analyse_signature(test1)
         arg: Argument = node.arguments['arg1']
         self.assertEqual(int, arg.type)
         self.assertEqual(3, arg.nargs)
@@ -43,24 +51,32 @@ class TestSignatureParser(unittest.TestCase):
         self.assertEqual(1, arg.const)
 
         arg: Argument = node.arguments['arg2']
-        self.assertEqual("append_const", arg.action)
-        self.assertEqual("foo", arg.const)
+        self.assertEqual("append", arg.action)
 
-        def test4(arg1: Choices[Literal["foo", "bar"]] = "foo"):
+        def test2(arg1: CustomAction[MyAction]):
             return arg1
 
         node = ParserNode("test")
-        node.analyse_signature(test4)
+        node.function = test2  # instead of analyse_signature to make MyAction known to the node
+        arg: Argument = node.arguments['arg1']
+        self.assertEqual(MyAction, arg.action)
+
+    def test_analyse_signature_choices(self):
+        def test1(arg1: Choices[Literal["foo", "bar"]] = "foo"):
+            return arg1
+
+        node = ParserNode("test")
+        node.analyse_signature(test1)
         arg: Argument = node.arguments['arg1']
         self.assertEqual(("foo", "bar"), arg.choices)
         self.assertEqual("foo", arg.default)
 
-        def test5(arg1: Choices[1, 2, 3, 4] = 5):
+        def test2(arg1: Choices[1, 2, 3, 4] = 5):
             return arg1
 
         node = ParserNode("test")
         with self.assertRaises(ValueError):
-            node.analyse_signature(test5)
+            node.analyse_signature(test2)
 
     def test_analyse_annotation(self):
         node = ParserNode("test")
@@ -96,7 +112,7 @@ class TestSignatureParser(unittest.TestCase):
             node.analyse_annotation("Union[int, ZeroOrOne[float]]", arg)
             self.fail()
 
-    def test_analyse_annotaion_part(self):
+    def test_analyse_annotation_part(self):
         node = ParserNode("test")
         node.function_globals = globals()
 
@@ -210,18 +226,23 @@ class TestSignatureParser(unittest.TestCase):
         node.analyse_annotation_part(AppendAction.__name__, arg)
         self.assertEqual("append", arg.action)
 
-        arg = Argument("test18")
-        node.analyse_annotation_part(AppendConstAction.__name__, arg)
-        self.assertEqual("append_const", arg.action)
+        #        arg = Argument("test18")
+        #        node.analyse_annotation_part(AppendConstAction.__name__, arg)
+        #        self.assertEqual("append_const", arg.action)
 
         arg = Argument("test19")
         node.analyse_annotation_part(CountAction.__name__, arg)
         self.assertEqual("count", arg.action)
-        self.assertIsNone(arg.type)  # must be None because argparse implies this and does not like explicit type.
+        self.assertIsNone(arg.type)
+        # must be None because argparse implies this and does not like explicit type.
 
         arg = Argument("test20")
         node.analyse_annotation_part(ExtendAction.__name__, arg)
         self.assertEqual("extend", arg.action)
+
+        arg = Argument("test21")
+        node.analyse_annotation_part(f"{CustomAction.__name__}[MyAction]", arg)
+        self.assertEqual(MyAction, arg.action)
 
 
 if __name__ == '__main__':

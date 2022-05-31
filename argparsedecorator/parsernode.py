@@ -170,7 +170,7 @@ class ParserNode:
     @property
     def function_globals(self) -> Dict[str, Any]:
         """Get the globals from the command function.
-        Autmatically retrieved when the :meth:'function' property is set to a
+        Autmatically retrieved when the :meth:`function` property is set to a
         function.
         This property is read only."""
         if self._func_globals:
@@ -521,8 +521,8 @@ class ParserNode:
             arg.action = "store_false"
         elif is_type_key(AppendAction, part):
             arg.action = "append"
-        elif is_type_key(AppendConstAction, part):
-            arg.action = "append_const"
+        #        elif is_type_key(AppendConstAction, part):
+        #            arg.action = "append_const"
         elif is_type_key(CountAction, part):
             arg.action = "count"
             if arg.type:
@@ -530,6 +530,16 @@ class ParserNode:
                 arg.type = None
         elif is_type_key(ExtendAction, part):
             arg.action = "extend"
+        elif is_type_key(CustomAction, part):
+            expression = get_bracket_content(part)
+            expression = resolve_literals(expression)
+            if not expression:
+                raise ValueError(f"CustomAction requires a parameter, CustomAction[...]")
+            actionclass = eval(expression, self.function_globals)
+            if not callable(actionclass):
+                raise ValueError(
+                    f"CustomAction requires a callable as parameter, was {str(actionclass)}")
+            arg.action = actionclass
 
         # None of the predefined keywords matches, therefore it is propably a type
         else:
@@ -755,3 +765,20 @@ def split_union(string: str) -> List[str]:
 
     result.append("".join(tmp).strip())
     return result
+
+
+# unused. Dirty hack used during development.
+# Kept here in case I need it some other time.
+def get_caller_globals():
+    """Get the local namespace of the outside caller."""
+    stack = inspect.stack()
+
+    while stack:
+        frameinfo = stack.pop(0)
+        filename = frameinfo.filename
+        if filename.endswith("\\parsernode.py") or filename.endswith("\\argparse_decorator.py"):
+            continue
+        frame = frameinfo[0]
+        return frame.f_globals
+
+    return globals()  # fallback to our own globals

@@ -7,6 +7,7 @@ Welcome to ArgParseDecorator's documentation!
 
    intro
    usage
+   limitations
    module_api
 
 Indices and tables

@@ -16,9 +16,8 @@ while other annotations are strictly used as markers and may not encapsulate oth
 
 .. code-block:: python
 
-    def commanf(verbose: Option | StoreTrueAction)
+    def command(verbose: Option | StoreTrueAction)
 """
-
 from typing import TypeVar, List, Generic
 
 # Using custom classes instead of NewType is not very efficient,
@@ -29,14 +28,14 @@ from typing import TypeVar, List, Generic
 T = TypeVar('T')
 
 
-class Flag:  # pylint: disable=too-few-public-methods
+class Flag:
     """
     Marks the argument as a Flag.
 
-    A Flag starts with a single hyphen ``-``.
+    A Flag starts with a single hyphen `-`.
 
-    If the Flag does not require any arguments (just present or not present) add a ``=False`` as its
-    default or add a :class:`.StoreTrueAction` annotation.
+    If the Flag does not require any arguments (just present or not present) add a `=False` as its
+    default or add a :class:`StoreTrueAction` annotation.
 
     .. code-block::
 
@@ -50,15 +49,19 @@ class Flag:  # pylint: disable=too-few-public-methods
     for details.
     """
 
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
-class Option:  # pylint: disable=too-few-public-methods
+
+class Option:
     """
     Marks the argument as an Option.
 
-    A Option starts with a double hyphen ``--``.
+    A Option starts with a double hyphen `--`.
 
-    If the Option does not require any arguments (just present or not present) add a ``=False``
-    as its default or add a :class:`.StoreTrueAction` annotation.
+    If the Option does not require any arguments (just present or not present) add a `=False`
+    as its default or add a :class:`StoreTrueAction` annotation.
 
     .. code-block::
 
@@ -72,8 +75,12 @@ class Option:  # pylint: disable=too-few-public-methods
     for details.
     """
 
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
-class OneOrMore(List[T]):  # pylint: disable=too-few-public-methods
+
+class OneOrMore(List[T]):
     """
     Tells the decorator that this argument requires one or more entries.
 
@@ -97,8 +104,12 @@ class OneOrMore(List[T]):  # pylint: disable=too-few-public-methods
     for details.
     """
 
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
-class ZeroOrMore(List[T]):  # pylint: disable=too-few-public-methods
+
+class ZeroOrMore(List[T]):
     """
     Tells the decorator that this argument can have any number of entries, including zero entries.
 
@@ -122,8 +133,12 @@ class ZeroOrMore(List[T]):  # pylint: disable=too-few-public-methods
     for details.
     """
 
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
-class ZeroOrOne(Generic[T]):  # pylint: disable=too-few-public-methods
+
+class ZeroOrOne(Generic[T]):
     """
     Tells the decorator that this argument can have either one or zero entries
 
@@ -143,8 +158,12 @@ class ZeroOrOne(Generic[T]):  # pylint: disable=too-few-public-methods
     for details.
     """
 
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
-class Exactly1(Generic[T]):  # pylint: disable=too-few-public-methods
+
+class Exactly1(Generic[T]):
     """
     Tells the decorator that this argument has exactly one entry
 
@@ -168,70 +187,203 @@ class Exactly1(Generic[T]):  # pylint: disable=too-few-public-methods
     for details.
     """
 
-
-class Exactly2(List[T]):  # pylint: disable=too-few-public-methods
-    pass
-
-
-class Exactly3(List[T]):  # pylint: disable=too-few-public-methods
-    pass
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
-class Exactly4(List[T]):  # pylint: disable=too-few-public-methods
-    pass
+class Exactly2(List[T]):
+    """The same as :class:`Exactly1`, except it expects 2 arguments.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
-class Exactly5(List[T]):  # pylint: disable=too-few-public-methods
-    pass
+class Exactly3(List[T]):
+    """The same as :class:`Exactly1`, except it expects 3 arguments.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
-class Exactly6(List[T]):  # pylint: disable=too-few-public-methods
-    pass
+class Exactly4(List[T]):
+    """The same as :class:`Exactly1`, except it expects 4 arguments.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
-class Exactly7(List[T]):  # pylint: disable=too-few-public-methods
-    pass
+class Exactly5(List[T]):
+    """The same as :class:`Exactly1`, except it expects 5 arguments.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
-class Exactly8(List[T]):  # pylint: disable=too-few-public-methods
-    pass
+class Exactly6(List[T]):
+    """The same as :class:`Exactly1`, except it expects 6 arguments.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
-class Exactly9(List[T]):  # pylint: disable=too-few-public-methods
-    pass
+class Exactly7(List[T]):
+    """The same as :class:`Exactly1`, except it expects 7 arguments.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
-class StoreAction:  # pylint: disable=too-few-public-methods
-    pass
+class Exactly8(List[T]):
+    """The same as :class:`Exactly1`, except it expects 8 arguments.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
-class StoreConstAction:  # pylint: disable=too-few-public-methods
-    pass
+class Exactly9(List[T]):
+    """The same as :class:`Exactly1`, except it expects 9 arguments.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
-class StoreTrueAction:  # pylint: disable=too-few-public-methods
-    pass
+class StoreAction:
+    """
+    Tells the *ArgumentParser* to just store the command line value in the annotated variable.
+
+    This is the default action for an argument and is therefore usually not required.
+
+    Internally this will add the `action=store` option to the argument.
+
+    See `argparse: action <https://docs.python.org/3/library/argparse.html#action>`__
+    for details.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
-class StoreFalseAction:  # pylint: disable=too-few-public-methods
-    pass
+class CustomAction(Generic[T]):
+    """
+    Tells the *ArgumentParser* to use a custom *Action* to process the command line value for this argument.
+
+    *CustomAction* requires the name of a callable in square brackets. This callable can be either a subclass of
+    `argparse.Action <https://docs.python.org/3/library/argparse.html#action-classes>`_ or a function with the
+    same signature as the *Action* class.
+
+    .. code-block:: python
+
+        class MyAction(argparse.Action):
+            def __init__(self, option_strings, dest, nargs=None, const=None, default=None, type=None, choices=None,
+                         required=False, help=None, metavar=None)
+                ...
+
+        @cli.command
+        def command(arg: CustomAction[MyAction]):
+            ...
+
+    Refer to `argument actions <https://docs.python.org/3/library/argparse.html#action>`_ and
+    `action classes <https://docs.python.org/3/library/argparse.html#action-classes>`_ for more details
+    on how to implement a custom action.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
-class AppendAction(List[T]):  # pylint: disable=too-few-public-methods
-    pass
+class StoreConstAction:
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
-class AppendConstAction(List[T]):  # pylint: disable=too-few-public-methods
-    pass
+class StoreTrueAction:
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
-class CountAction(int):  # pylint: disable=too-few-public-methods
-    pass
+class StoreFalseAction:
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
-class ExtendAction(List[T]):  # pylint: disable=too-few-public-methods
-    pass
+class AppendAction(List[T]):
+    """
+    Tells the *ArgumentParser* to append the command line value to a list.
+    With this annotation an argument can be specified multiple times on the command line
+
+    .. code-block::
+
+        def cmd(foo: Option | AppendAction | int)
+            return foo
+
+        parser.execute("cmd --foo 1 --foo 2")   # returns [1, 2]
+
+    Internally this will add the `action=append` option to the argument.
+
+    See `argparse: action <https://docs.python.org/3/library/argparse.html#action>`__
+    for details.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
-class Choices(Generic[T]):  # pylint: disable=too-few-public-methods
-    pass
+# AppendConstAction is not supported.
+
+# class AppendConstAction(List[T]):
+#    """
+#    Tells the *ArgumentParser* to append the command line value to a list.
+#    With this annotation an argument can be specified multiple times on the command line
+#
+#    .. code-block::
+#
+#        def cmd(foo: Option | AppendAction | int)
+#            return foo
+#
+#        parser.execute("cmd --foo 1 --foo 2")   # returns [1, 2]
+#
+#    Internally this will add the `action=append` option to the argument.
+#
+#    See `argparse: action <https://docs.python.org/3/library/argparse.html#action>`__
+#    for details.
+#    """
+
+class CountAction(int):
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
+
+
+class ExtendAction(List[T]):
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
+
+
+class Choices(Generic[T]):
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
