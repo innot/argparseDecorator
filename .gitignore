@@ -1,2 +1,4 @@
 /trashcan/
 /docs/build/
+/dist/
+/ArgParseDecorator.egg-info/

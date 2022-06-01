@@ -122,7 +122,7 @@ options:
     - the new type unions with '|' make the annotations much more readable
 
 * Works with Python 3.7+
-    - some features require the use of 'from __future__ import annotations'
+    - some features require the use of 'from \_\_future\_\_ import annotations'
 
 * No other dependencies
 
