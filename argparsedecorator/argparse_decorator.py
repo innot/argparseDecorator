@@ -74,7 +74,7 @@ class ArgParseDecorator:
     :type argparser_class: `ArgumentParser <https://docs.python.org/3/library/argparse.html#argumentparser-objects>`_
         or subclass thereof.
     :param kwargs: Other arguments to be passed to the ArgumentParser,
-        e.g. *descriptio* or *allow_abbrev*
+        e.g. *description* or *allow_abbrev*
     """
 
     def __init__(self,

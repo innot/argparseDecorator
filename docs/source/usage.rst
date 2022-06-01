@@ -41,9 +41,9 @@ In this short example the command ``reverse``, which takes a single argument ``w
 
 .. code-block:: python
 
-    parser = ArgParseDecorator()
+    cli = ArgParseDecorator()
 
-    @parser.command
+    @cli.command
     def reverse(word):
          print(word[::-1])
 
@@ -52,7 +52,7 @@ With this a command can be executed like this
 
 .. code-block:: python
 
-    parser.execute("reverse foobar")
+    cli.execute("reverse foobar")
 
     raboof
 
@@ -64,7 +64,7 @@ class has to be created.
 
 .. code-block:: python
 
-    parser = ArgParseDecorator()
+    cli = ArgParseDecorator()
 
 
 The two main methods of the ArgParseDecorator class are
@@ -76,12 +76,47 @@ of decorated functions.
 
 .. code-block:: python
 
-    @parser.command
+    @cli.command
     def foobar(word):
          ...
 
 Any such decorated function is called by *execute(cmdstring)* when the *cmdstring* contains the command.
 
+Arguments
++++++++++
+
+Take a look at the :class:`~argparsedecorator.argparse_decorator.ArgParseDecorator` API to see what optional
+arguments can be given when instantiating the class.
+
+Note that any keyword argument that *ArgParseDecorator* does not handle itself will be passed onto the the
+underlying `ArgumentParser`_ class. Some options like
+`formatter_class <https://docs.python.org/3/library/argparse.html#formatter-class>`_ or
+`allow_abbrev <https://docs.python.org/3/library/argparse.html#allow-abbrev>`_ might be useful in some cases.
+
+However some options of `ArgumentParser`_ are not useful and should not be used. Take a look at the
+:ref:`Limitations` chapter for more info on which options should be avoided.
+
+Help
+++++
+
+By default `ArgumentParser`_ adds a `-h/--help <https://docs.python.org/3/library/argparse.html#add-help>`_
+argument to every command. This is somewhat ugly for a CLI with many commands and every one having the same,
+obvious help argument.
+Instead the *ArgParseDecorator* by default adds a ``help`` command to the CLI which will provide a list of all
+supported commands when called by itself or a detailed command description when supplied with a command name argument.
+
+To override this behaviour and instead use the `-h/--help` system of *ArgumentParser* set `helpoption="-h"` when
+instantiating the *ArgParseDecorator*
+
+.. code-block:: python
+
+    cli = ArgParseDecorator(helpoption="-h")
+
+If no help is wanted set `helpoption` to `None`
+
+.. code-block:: python
+
+    cli = ArgParseDecorator(helpoption=None)
 
 Subcommands
 +++++++++++
@@ -94,11 +129,11 @@ For example the commands to switch an LED on or off could be implemented like th
 
 .. code-block:: python
 
-    @parser.command
+    @cli.command
     def led_on():
         ...
 
-    @parser.command
+    @cli.command
     def led_off():
         ...
 
@@ -107,7 +142,7 @@ functions are called.
 
 .. code-block:: python
 
-    parser.execute("led on")
+    cli.execute("led on")
 
 Commands with Hyphens
 +++++++++++++++++++++
@@ -116,11 +151,11 @@ To create a command containing a hypen `-`, e.g. ``get-info ...`` a double under
 
 .. code-block:: python
 
-    @parser.command
+    @cli.command
     def get__info():
         ...
 
-    parser.execute("get-info")
+    cli.execute("get-info")
 
 
 Using ArgParseDecorator to Decorate Class Methods
@@ -194,7 +229,7 @@ will calculate the sum of the squares.
 
 .. code:: python
 
-    @parser.command
+    @cli.command
     def add(values: OneOrMore[float], squared: Option = False) -> None:
         if squared:
             values = [x*x for x in values]
@@ -210,11 +245,11 @@ The ``add`` command can now be used like this
 
 .. code:: python
 
-    parser.execute("add 1 2 3 4")
+    cli.execute("add 1 2 3 4")
 
     10
 
-    parser.execute("add --squared 1 2 3 4")
+    cli.execute("add --squared 1 2 3 4")
 
     30
 
@@ -251,12 +286,12 @@ If a decorated function has a docstring its content is used as the help text for
 
 .. code-block:: python
 
-    @parser.command
+    @cli.command
     def foo(bar):
         """The foo command will foo a bar."""
         ...
 
-    parser.execute("help foo")
+    cli.execute("help foo")
 
 
 will create the output:
@@ -284,14 +319,14 @@ is added to the docstring. Example:
 
 .. code-block:: python
 
-    @parser.command
+    @cli.command
     def foo(bar):
         """
         The foo command will foo a bar.
         :param bar: Which bar to foo"""
         ...
 
-    parser.execute("help foo")
+    cli.execute("help foo")
 
 will generate:
 
@@ -319,15 +354,15 @@ Here is an example on how this can be used:
 
 .. code-block:: python
 
-    @parser.command
+    @cli.command
     def foobar(flag: Option = True):
         """
         :alias flag: -f
         """
         print(flag)
 
-    parser.execute("foobar --flag")
-    parser.execute("foobar -f")
+    cli.execute("foobar --flag")
+    cli.execute("foobar -f")
 
 the last two lines are identical and will print ``True``.
 
@@ -351,7 +386,7 @@ Example:
 
 .. code-block:: python
 
-    @parser.command
+    @cli.command
     def foobar(value):
         """
         Only allow values foo, bar, 1 or 2
@@ -359,9 +394,9 @@ Example:
         """
         print(flag)
 
-    parser.execute("foobar foo")
-    parser.execute("foobar 2")
-    parser.execute("foobar baz")    # this will raise an Exception
+    cli.execute("foobar foo")
+    cli.execute("foobar 2")
+    cli.execute("foobar baz")    # this will raise an Exception
 
 .. note::
     The list of choices is parsed using the python eval_ function.
@@ -524,3 +559,4 @@ If any commands require further user input, e.g. for confirmation checks, the
 .. _docstring: https://peps.python.org/pep-0257/
 .. _class variable: https://docs.python.org/3/tutorial/classes.html#class-and-instance-variables
 .. _argparse.ArgumentParser: https://docs.python.org/3/library/argparse.html
+.. _ArgumentParser: https://docs.python.org/3/library/argparse.html#argumentparser-objects

@@ -112,6 +112,35 @@ class MyTestCase(unittest.TestCase):
         cli.execute("delete", stdin=my_stdin, stdout=stdout)
         self.assertEqual("you have chosen 'yes'", stdout.getvalue().splitlines()[1])
 
+    def test_storeconstaction(self):
+        cli = ArgParseDecorator()
+
+        @cli.command
+        def cmd1(foo: Option | StoreConstAction = 42):
+            return foo
+
+        @cli.command
+        def cmd2(foo: Option = 42):
+            return foo
+
+        result = cli.execute("cmd1 --foo")
+        self.assertEqual(42, result)
+
+        result = cli.execute("cmd1")
+        self.assertIsNone(result)
+
+        with self.assertRaises(ArgumentError):
+            cli.execute("cmd1 --foo 100", error_handler=None)
+
+        with self.assertRaises(ArgumentError):
+            cli.execute("cmd2 --foo", error_handler=None)
+
+        result = cli.execute("cmd2")
+        self.assertEqual(42, result)
+
+        result = cli.execute("cmd2 --foo 100")
+        self.assertEqual("100", result)
+
 
 if __name__ == '__main__':
     unittest.main()

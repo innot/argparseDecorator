@@ -82,7 +82,7 @@ class Option:
 
 class OneOrMore(List[T]):
     """
-    Tells the decorator that this argument requires one or more entries.
+    Tells the decorator that this argument requires one or more values.
 
     Internally this will add the `nargs='?'` option to the argument.
 
@@ -177,6 +177,7 @@ class Exactly1(Generic[T]):
 
     .. code-block::
 
+        @cli.command
         def cmd(value: Exactly1[float])
             value.as_integer_ratio()
 
@@ -270,7 +271,7 @@ class StoreAction:
 
     This is the default action for an argument and is therefore usually not required.
 
-    Internally this will add the `action=store` option to the argument.
+    Internally this will add the `action="store"` option to the argument.
 
     See `argparse: action <https://docs.python.org/3/library/argparse.html#action>`__
     for details.
@@ -300,6 +301,8 @@ class CustomAction(Generic[T]):
         def command(arg: CustomAction[MyAction]):
             ...
 
+    Internally this will add the `action=MyAction` option to the argument.
+
     Refer to `argument actions <https://docs.python.org/3/library/argparse.html#action>`_ and
     `action classes <https://docs.python.org/3/library/argparse.html#action-classes>`_ for more details
     on how to implement a custom action.
@@ -311,18 +314,127 @@ class CustomAction(Generic[T]):
 
 
 class StoreConstAction:
+    """
+    Tells the *ArgumentParser* to assign the given default value to the argument whenever it
+    is present on the command line.
+
+    This is similar to :class:`StoreTrueAction` but with a generic constant instead of the fixed `True`.
+
+    .. code-block::
+
+        @cli.command
+        def cmd(foo: Option | StoreConstAction = 42)
+            return foo
+
+        parser.execute("cmd --foo")         # returns 42
+        parser.execute("cmd")               # returns None
+        parser.execute("cmd --foo 100")     # causes unrecognized argument error
+
+    .. note::
+        This is not the same as just assigning a default value.
+
+        .. code-block::
+
+            @cli.command
+            def cmd(foo: Option = 42):
+                return foo
+
+            cli.execute("cmd --foo")        # causes missing argument error
+            cli.execute("cmd")              # returns 42
+            cli.execute("cmd --foo 100")    # returns 100
+
+
+    Internally this will add the `action="store_const"` option to the argument and take the given default and
+    set it as the `const=...` option.
+
+    See `argparse: action <https://docs.python.org/3/library/argparse.html#action>`__
+    for details.
+    """
+
     def __new__(cls, *args, **kwargs):
         raise TypeError(
             f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
 class StoreTrueAction:
+    """
+    Tells the *ArgumentParser* to set the argument to `True` whenever it is present on the command line
+    (and `False` if it is absent).
+
+
+    This is a special case of :class:`StoreConstAction` with a constant value of `True`.
+
+    .. code-block::
+
+        @cli.command
+        def cmd(foo: Option | StoreTrueAction)
+            return foo
+
+        parser.execute("cmd --foo")         # returns True
+        parser.execute("cmd")               # returns False
+
+    .. note::
+
+        Instead of using `StoreTrueAction` any :class:`Option` or :class:`Flag` can just be given a default of
+        ``False``. Internally this is converted to a `StoreTrueAction`.
+
+        .. code-block::
+
+            @cli.command
+            def cmd(foo: Option = False)
+                return foo
+
+            parser.execute("cmd --foo")         # returns True
+            parser.execute("cmd")               # returns False
+
+
+    Internally this will add the `action="store_true"` option to the argument.
+
+    See `argparse: action <https://docs.python.org/3/library/argparse.html#action>`_
+    for details.
+    """
+
     def __new__(cls, *args, **kwargs):
         raise TypeError(
             f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
 class StoreFalseAction:
+    """
+    Tells the *ArgumentParser* to set the argument to `False` whenever it is present on the command line
+    (and `True` if it is absent).
+
+    This is a special case of :class:`StoreConstAction` with a constant value of `False`.
+
+    .. code-block::
+
+        @cli.command
+        def cmd(foo: Option | StoreFalseAction)
+            return foo
+
+        parser.execute("cmd --foo")         # returns False
+        parser.execute("cmd")               # returns True
+
+    .. note::
+
+        Instead of using `StoreFalseAction` any :class:`Option` or :class:`Flag` can just be given a default of
+        ``True``. Internally this is converted to a `StoreFalseAction`.
+
+        .. code-block::
+
+            @cli.command
+            def cmd(foo: Option = True)
+                return foo
+
+            parser.execute("cmd --foo")         # returns False
+            parser.execute("cmd")               # returns True
+
+    Internally this will add the `action="store_false"` option to the argument.
+
+    See `argparse: action <https://docs.python.org/3/library/argparse.html#action>`_
+    for details.
+    """
+
     def __new__(cls, *args, **kwargs):
         raise TypeError(
             f"{cls.__name__} is only used for annotations and should not be instantiated,")
@@ -331,19 +443,20 @@ class StoreFalseAction:
 class AppendAction(List[T]):
     """
     Tells the *ArgumentParser* to append the command line value to a list.
-    With this annotation an argument can be specified multiple times on the command line
+
+    With this annotation an argument can be specified multiple times on the command line.
 
     .. code-block::
 
+        @cli.command
         def cmd(foo: Option | AppendAction | int)
             return foo
 
-        parser.execute("cmd --foo 1 --foo 2")   # returns [1, 2]
+        parser.execute("cmd --foo 1 --foo 2")  # returns [1, 2]
 
-    Internally this will add the `action=append` option to the argument.
+    Internally this will add the `action = "append"` option to the argument.
 
-    See `argparse: action <https://docs.python.org/3/library/argparse.html#action>`__
-    for details.
+    See `argparse: action <https://docs.python.org/3/library/argparse.html#action>`_ for details.
     """
 
     def __new__(cls, *args, **kwargs):
@@ -355,6 +468,8 @@ class AppendAction(List[T]):
 
 # class AppendConstAction(List[T]):
 #    """
+
+
 #    Tells the *ArgumentParser* to append the command line value to a list.
 #    With this annotation an argument can be specified multiple times on the command line
 #
@@ -372,6 +487,25 @@ class AppendAction(List[T]):
 #    """
 
 class CountAction(int):
+    """
+    Tells the *ArgumentParser* to just count the number of occurences of this argument on the command line.
+
+    This action always returns an `int` and can not be set to any type.
+
+    .. code-block::
+
+        @cli.command
+        def cmd(v: CountAction)
+            return v
+
+        parser.execute("cmd -vvvv")   # returns 4
+
+    Internally this will add the `action="count"` option to the argument.
+
+    See `argparse: action <https://docs.python.org/3/library/argparse.html#action>`_
+    for details.
+    """
+
     def __new__(cls, *args, **kwargs):
         raise TypeError(
             f"{cls.__name__} is only used for annotations and should not be instantiated,")
@@ -384,6 +518,39 @@ class ExtendAction(List[T]):
 
 
 class Choices(Generic[T]):
+    """
+    Tells the *ArgumentParser* that this argument can only accept some specific values.
+
+    These values must be specified in square brackets. This can be either a list of items or
+    anything else that returns a container of values.
+
+    In following example the command takes two arguments: the first may be either "foo" or "bar" while the
+    second argument accepts any integer between 1 and 4.
+
+    .. code-block:: python
+
+        @cli.command
+        def command(arg1: Choices["foo", "bar"], arg2: Choices[range(1,5)] | int):
+            ...
+
+    .. note::
+
+        Without `from __future__ import annotations <https://peps.python.org/pep-0563/>`_ Python versions
+        prior to 3.10 do not like strings in type annotations. In this case the choices can be wrapped in a
+        `Literal <https://docs.python.org/3/library/typing.html#typing.Literal>`_ to tell
+        Python (or any type checker) to not evaluate them a load time.
+
+        .. code-block::
+
+            def command(arg1: Choices[Literal["foo", "bar"]], arg2: Choices[Literal[range(1,5)]])
+
+    Internally the bracket content from *Choices* is parsed via
+    `eval <https://docs.python.org/3/library/functions.html#eval>`_, so nothing dangerous should be put there -
+    especially no functions of unknown source. The result from this is then added as `choices=...` to the argument.
+
+    See `argparse: choices <https://docs.python.org/3/library/argparse.html#choices>`_ for more details.
+    """
+
     def __new__(cls, *args, **kwargs):
         raise TypeError(
             f"{cls.__name__} is only used for annotations and should not be instantiated,")
