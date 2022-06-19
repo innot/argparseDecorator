@@ -4,8 +4,13 @@ Using the argparseDecorator
 Install
 -------
 
-.. note::
-    argparseDecorator has not yet been uploaded to Pypi. Install by downloading from github instead.
+The easiest way to install argparseDecorator is with pip:
+
+.. code-block::
+
+    $ pip import argparseDecorator
+
+Alternativly the sources can be downloaded directly from the `Github <https://github.com/innot/argparseDecorator>` page.
 
 
 Once argparseDecorator has been installed it can be used like this.

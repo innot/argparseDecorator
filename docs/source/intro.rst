@@ -97,7 +97,7 @@ information
     optional arguments:
       --squared, -sq  when present square each number first
 
-See :doc:'docstring' for more details and examples.
+See :ref:`Using the argparseDecorator` for more details and examples.
 
 
 .. _argparse: https://docs.python.org/3/library/argparse.html

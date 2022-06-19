@@ -36,7 +36,7 @@ cmdline = input()
 cli.execute(cmdline)
 ```
 
-The ArgParseDecorator uses both the signature of the decorated function as well as its
+The ArgParseDecorator uses both the signature of the decorated function and its
 [docstring](https://peps.python.org/pep-0257/) to infer information, metadata and description of the function arguments
 and passes them to the underlying ArgumentParser.
 
@@ -89,7 +89,7 @@ Now a command line can be parsed and executed like this:
    result = cli.execute("ls -a -c 2 --sort rev --ignore *.log")
 ```
 
-ArgParseDecorator uses the docstring of the decorated function to get a help string for the command and it also parses
+ArgParseDecorator uses the docstring of the decorated function to get a help string for the command, and it also parses
 [Sphinx](https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html) style directives to provide help strings
 for arguments as well as additional metadata that can not be written as annotations.
 
