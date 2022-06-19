@@ -14,9 +14,9 @@ Here is a simple example of a command that reverses the input:
 .. code-block:: python
 
     >>> from argparsedecorator import *
-    >>> parser = ArgParseDecorator()
+    >>> cli = ArgParseDecorator()
 
-    >>> @parser.command
+    >>> @cli.command
     ... def reverse(word):
     ...     print(word[::-1])
 
@@ -25,7 +25,7 @@ With this a command can be executed like this
 
 .. code:: python
 
-    >>> parser.execute("reverse foobar")
+    >>> cli.execute("reverse foobar")
     raboof
 
 
@@ -36,26 +36,26 @@ will calculate the sum of the squares.
 
 .. code-block:: python
 
-    @parser.command
-    def add(values: OneOrMore[float], squared: Option = True) -> None:
+    @cli.command
+    def add(values: OneOrMore[float], squared: Option = False) -> None:
         if squared:
             values = [x*x for x in values]
         print sum(values)
 
 
 'OneOrMore[float]' tells the decorator, that 'values' must have at least one value and
-that it is accepting only valid numbers (int or float). 'Option = True' marks 'squared'
+that it is accepting only valid numbers (int or float). 'Option = False' marks 'squared'
 as an option (starting with '--') and that it has the the value 'True' if set on the
-command line or 'False' otherwise.
+command line or 'False' (the default) otherwise.
 
 The 'add' command can now be used like this
 
 .. code:: python
 
-    >>> parser.execute("add 1 2 3 4")
+    >>> cli.execute("add 1 2 3 4")
     10
 
-    >>> parser.execute("add --squared 1 2 3 4")
+    >>> cli.execute("add --squared 1 2 3 4")
     30
 
 Take a look at the Annotations_ API for all supported annotations and more examples.
@@ -68,8 +68,8 @@ that can not be easily written as annotations.
 
 .. code-block:: python
 
-    @parser.command
-    def add(values: OneOrMore[float], squared: Option = True) -> None:
+    @cli.command
+    def add(values: OneOrMore[float], squared: Option = False) -> None:
         """
         Add up a list of numbers.
         :param values: one or more numbers
@@ -86,7 +86,7 @@ information
 
 .. code:: python
 
-    >>> parser.execute("help add")
+    >>> cli.execute("help add")
     usage:  add [--squared] values [values ...]
 
     Add up a list of numbers.
