@@ -14,6 +14,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('../../argparsedecorator'))
 
 # -- Project information -----------------------------------------------------
 
@@ -22,7 +23,7 @@ copyright = '2022, Thomas Holland'
 author = 'Thomas Holland'
 
 # The full version, including alpha/beta/rc tags
-release = '0.9alpha'
+release = '1.0'
 
 # -- General configuration ---------------------------------------------------
 

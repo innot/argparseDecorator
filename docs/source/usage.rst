@@ -10,7 +10,7 @@ The easiest way to install argparseDecorator is with pip:
 
     $ pip import argparseDecorator
 
-Alternativly the sources can be downloaded directly from the `Github <https://github.com/innot/argparseDecorator>` page.
+Alternativly the sources can be downloaded directly from the Github_ page.
 
 
 Once argparseDecorator has been installed it can be used like this.
@@ -42,7 +42,7 @@ Simple example
 --------------
 
 Now the decorator can be instantiated and its command decorator can be used to mark a function as a command.
-In this short example the command ``reverse``, which takes a single argument ``word``, is created.
+In this short example the command `reverse`, which takes a single argument `word`, is created.
 
 .. code-block:: python
 
@@ -559,6 +559,7 @@ If any commands require further user input, e.g. for confirmation checks, the
     cli.execute("delete", stdin=my_stdin)
 
 
+.. _Github: https://github.com/innot/argparseDecorator
 .. _eval: https://docs.python.org/3/library/functions.html#eval
 .. _type_annotations: https://docs.python.org/3/library/typing.html
 .. _docstring: https://peps.python.org/pep-0257/
