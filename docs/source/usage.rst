@@ -10,7 +10,7 @@ The easiest way to install argparseDecorator is with pip:
 
     $ pip import argparseDecorator
 
-Alternativly the sources can be downloaded directly from the Github_ page.
+Alternativly the sources can be downloaded directly from the `Github <https://github.com/innot/argparseDecorator>` page.
 
 
 Once argparseDecorator has been installed it can be used like this.
@@ -64,7 +64,7 @@ With this a command can be executed like this
 The ArgParseDecorator class
 ---------------------------
 
-To use the argparseDecorator an instance of the :class:`~argparsedecorator.argparse_decorator.ArgParseDecorator`
+To use the argparseDecorator an instance of the :class:`~.argparse_decorator.ArgParseDecorator`
 class has to be created.
 
 .. code-block:: python
@@ -73,8 +73,8 @@ class has to be created.
 
 
 The two main methods of the ArgParseDecorator class are
-:meth:`~argparsedecorator.argparse_decorator.ArgParseDecorator.command` and
-:meth:`~argparsedecorator.argparse_decorator.ArgParseDecorator.execute`.
+:meth:`~.argparse_decorator.ArgParseDecorator.command` and
+:meth:`~.argparse_decorator.ArgParseDecorator.execute`.
 
 *command* is a Decorator that can mark any function or method as a command. There can be any number
 of decorated functions.
@@ -559,7 +559,6 @@ If any commands require further user input, e.g. for confirmation checks, the
     cli.execute("delete", stdin=my_stdin)
 
 
-.. _Github: https://github.com/innot/argparseDecorator
 .. _eval: https://docs.python.org/3/library/functions.html#eval
 .. _type_annotations: https://docs.python.org/3/library/typing.html
 .. _docstring: https://peps.python.org/pep-0257/
