@@ -1,12 +1,15 @@
 Using the argparseDecorator
 ===========================
 
+.. role:: py(code)
+    :language: python
+
 Install
 -------
 
 The easiest way to install argparseDecorator is with pip:
 
-.. code-block::
+.. code-block:: console
 
     $ pip import argparseDecorator
 
@@ -43,7 +46,7 @@ Simple example
 --------------
 
 Now the decorator can be instantiated and its command decorator can be used to mark a function as a command.
-In this short example the command :code:`reverse` is created, which takes a single argument named :code:`word`:
+In this short example the command ``reverse`` is created, which takes a single argument named ``word``:
 
 .. code-block:: python
 
@@ -77,8 +80,8 @@ The two main methods of the :class:`~.argparse_decorator.ArgParseDecorator` clas
 :meth:`~.argparse_decorator.ArgParseDecorator.command` and
 :meth:`~.argparse_decorator.ArgParseDecorator.execute`.
 
-*command* is a Decorator that can mark any function or method as a command. There can be any number
-of decorated functions.
+:meth:`~.argparse_decorator.ArgParseDecorator.command` is a Decorator that can mark any function
+or method as a command. There can be any number of decorated functions.
 
 .. code-block:: python
 
@@ -86,7 +89,11 @@ of decorated functions.
     def foobar(word):
          ...
 
-Any such decorated function is called by :code:`execute(cmdstring)` when the :code:`cmdstring` contains the command.
+Any such decorated function is called by :py:`execute(cmdstring)` when the ``cmdstring`` contains the command.
+
+.. note::
+
+    The ``command`` decorator can be used with or without parenthesis.
 
 Arguments
 +++++++++
@@ -109,17 +116,17 @@ By default :external:class:`~argparse.ArgumentParser` adds a
 `-h/--help <https://docs.python.org/3/library/argparse.html#add-help>`_ argument to every command.
 This is somewhat ugly for a CLI with many commands and every one having the same, obvious help argument.
 
-Instead the *ArgParseDecorator* by default adds a :code:`help` command to the CLI which will provide a list of all
+Instead the *ArgParseDecorator* by default adds a ``help`` command to the CLI which will provide a list of all
 supported commands when called by itself or a detailed command description when supplied with a command name argument.
 
-To override this behaviour and instead use the :code:`-h/--help` system of *ArgumentParser* set :code:`helpoption="-h"`
+To override this behaviour and instead use the ``-h/--help`` system of *ArgumentParser* set :py:`helpoption="-h"`
 when instantiating the *ArgParseDecorator*
 
 .. code-block:: python
 
     cli = ArgParseDecorator(helpoption="-h")
 
-If no help is wanted set :code:`helpoption` to :code:`None`
+If no help is wanted set ``helpoption`` to :py:`None`
 
 .. code-block:: python
 
@@ -154,7 +161,7 @@ functions are called.
 Commands with Hyphens
 +++++++++++++++++++++
 
-To create a command containing a hypen :code:`-`, e.g. :code:`get-info ...` a double underscore is used
+To create a command containing a hypen ``-``, e.g. ``get-info ...`` a double underscore is used
 in the command name, e.g.
 
 .. code-block:: python
@@ -183,10 +190,10 @@ When using this library to decorate methods within a class there is one caveat:
 
 To mark methods as commands the *ArgParseDecorator* must be instantiated as a `class variable`_.
 But as a class variable it does not have access to any data from a *MyCLI* instance, especially not to the
-:code:`self` reference.
+:py:`self` reference.
 
-To correctly call the :code:`cmd` function from :meth:`~.argparse_decorator.ArgParseDecorator.execute`
-a reference to :code:`self` must be given, e.g. like this:
+To correctly call the ``cmd`` function from :meth:`~.argparse_decorator.ArgParseDecorator.execute`
+a reference to :py:`self` must be given, e.g. like this:
 
 .. code-block:: python
 
@@ -194,14 +201,14 @@ a reference to :code:`self` must be given, e.g. like this:
 
         cli = ArgParseDecorator()
 
-        @command
+        @cli.command
         def cmd(self, arg1, arg2, ...):
             ...
 
         def execute(self, cmdline):
             cli.execute(cmdline, self)
 
-Note how :code:`cli.execute()` is wrapped in a method and how it passes a reference
+Note how :py:`cli.execute()` is wrapped in a method and how it passes a reference
 to *self* to the *ArgParseDecorator*.
 
 An alternative method would be the use of inner functions like this:
@@ -218,7 +225,7 @@ An alternative method would be the use of inner functions like this:
             cli = ArgParseDecorator()
             self.cli = cli              # store as instance variable
 
-            @command
+            @cli.command
             def cmd(arg1, arg2, ...)
                 self.do_something_with(arg1)
 
@@ -233,7 +240,7 @@ argparseDecorator makes heavy use of type_annotations_ to pass additional inform
 This includes a number of custom Types which are used to provide additional information about the arguments.
 
 For example the following
-command will add up a list of numbers or, if :code:`--squared` is added to the command,
+command will add up a list of numbers or, if ``--squared`` is added to the command,
 will calculate the sum of the squares.
 
 .. code:: python
@@ -245,12 +252,12 @@ will calculate the sum of the squares.
         print sum(values)
 
 
-:code:`OneOrMore[float]` tells the decorator, that :code:`values` must have at least one value and
-that it is accepting only valid numbers (int or float). :code:`Option = False` marks :code:`squared`
-as an option (starting with :code:`--`) and that it has the the value :code:`True` if set on the
-command line (overriding the default) or :code:`False` (the default) otherwise.
+:py:`OneOrMore[float]` tells the decorator, that ``values`` must have at least one value and
+that it is accepting only valid numbers (int or float). :py:`Option = False` marks ``squared``
+as an option (starting with ``--``) and that it has the the value :py:`True` if set on the
+command line (overriding the default) or :py:`False` (the default) otherwise.
 
-The :code:`add` command can now be used like this
+The ``add`` command can now be used like this
 
 .. code:: python
 
@@ -262,23 +269,23 @@ The :code:`add` command can now be used like this
 
     30
 
-Take a look at the :mod:`argparsedecorator.annotations` API for all supported annotations and more examples.
+Take a look at the :mod:`~argparsedecorator.annotations` API for all supported annotations and more examples.
 
 
 Flags and Options
 +++++++++++++++++
 
 The argparse library only destinguishes between position arguments and flags. Flags are
-all arguments starting with either a single or a double hyphen :code:`-`.
+all arguments starting with either a single or a double hyphen ``-``.
 
 As python identifiers must not start with a hyphen there must be a way to tell the argparseDecorator
 that the argument of a command is a flag.
 
-This is done with the :code:`Flag` and :code:`Option` annotations. The :code:`Flag` tells the the decorator
-to internally add a single :code:`-` to the argument. :code:`Option` does the same, but with a double hyphen :code:`--`.
+This is done with the ``Flag`` and ``Option`` annotations. The ``Flag`` tells the the decorator
+to internally add a single ``-`` to the argument. ``Option`` does the same, but with a double hyphen ``--``.
 
-If an *Flag* or *Option* should have multiple names, e.g. a long *Option* name like :code:`--foobar` and a short
-*Flag* name like :code:`-f` an :code:`:alias --foobar: -f` must be added to the docstring of the command function.
+If an *Flag* or *Option* should have multiple names, e.g. a long Option name like ``--foobar`` and a short
+*Flag* name like ``-f`` an ``:alias --foobar: -f`` must be added to the docstring of the command function.
 See :ref:`Aliases` below for details.
 
 Number of Values
@@ -287,6 +294,13 @@ Number of Values
 :mod:`.annotations` has a number of Annotation Types to tell the *ArgParseDecorator* (and the
 *arparse.ArgumentParser*) how many values a command argument expects.
 If nothing is specified a single value is expected for the argument.
+
+These annotations are supported:
+
+    * :class:`~.annotations.Exactly1` up to :class:`~.annotations.Exactly9`
+    * :class:`~.annotations.ZeroOrOne`
+    * :class:`~.annotations.ZeroOrMore`
+    * :class:`~.annotations.OneOrMore`
 
 Docstring
 ---------
@@ -356,14 +370,14 @@ will generate:
     positional arguments:
       bar   Which bar to foo
 
-If the help for an argument starts with :code:`SUPPRESS`, then this argument is hidden in the help. This might
+If the help for an argument starts with ``SUPPRESS``, then this argument is hidden in the help. This might
 be usefull to hide some unofficial options used for example for debugging.
 
 Aliases
 +++++++
 
-ArgumentParser allows for flags (arguments starting with :code:`-` or :code:`--`) to have multiple names, e.g.
-:code:`--flag` and :code:`-f`. To support multiple names for the same argument the :code:`:alias` directive can be used
+ArgumentParser allows for flags (arguments starting with ``-`` or ``--``) to have multiple names, e.g.
+``--flag`` and ``-f``. To support multiple names for the same argument the ``:alias`` directive can be used
 in the docstring. It has the format
 
 .. code::
@@ -384,19 +398,19 @@ Here is an example on how this can be used:
     cli.execute("foobar --flag")
     cli.execute("foobar -f")
 
-the last two lines are identical and will print :code:`True`.
+the last two lines are identical and will print :py:`True`.
 
 .. note::
 
-    While the argname given to :code:`:alias` will work with or without leading hyphens, the actual alias(es) must have
+    While the argname given to ``:alias`` will work with or without leading hyphens, the actual alias(es) must have
     either one or two leading hyphens.
 
 Choices
 +++++++
 
-ArgParseDecorator supports the :code:`Choices[]` annotation in the signature to restrict the value of an argument
+ArgParseDecorator supports the ``Choices[]`` annotation in the signature to restrict the value of an argument
 to a list of predefined values. As the syntax somewhat ugly for a list of strings (they have to be encapsuled
-in a :code:`Literal[]` annotation to keep type checkers happy) there is an alternative using a docstring with
+in a ``Literal[]`` annotation to keep type checkers happy) there is an alternative using a docstring with
 the format:
 
 .. code::
@@ -421,13 +435,13 @@ Example:
 
 .. note::
     The list of choices is parsed using the python :external:func:`eval` function.
-    It can be anything that returns a sequence of items, e.g. :code:`range(1,4)` would be a valid value for choices.
+    It can be anything that returns a sequence of items, e.g. :py:`range(1,4)` would be a valid value for choices.
 
 Metavar
 +++++++
 
 When ArgumentParser generates help messages, it needs some way to refer to each expected argument.
-By default, ArgumentParser objects use name of the argument as the :code:`name` of each object.
+By default, ArgumentParser objects use name of the argument as the ``name`` of each object.
 By default, for positional argument actions, the dest value is used directly, and for
 optional argument actions, the dest value is uppercased. For example
 
@@ -444,8 +458,8 @@ will have a help output of
     optional arguments:
       --datetime DATETIME DATETIME
 
-which does look ugly and is not as descriptive. Here the :code:`:metavar` directive can be used to assign more
-descriptive names to the arguments of :code:`--datetime`, e.g.:
+which does look ugly and is not as descriptive. Here the ``:metavar`` directive can be used to assign more
+descriptive names to the arguments of ``--datetime``, e.g.:
 
 .. code-block:: python
 
@@ -499,7 +513,7 @@ do some formatting on them, a special error handler function can be given to
 :meth:`~.argparse_decorator.ArgParseDecorator.execute` that is called
 whenever an error occurs.
 
-The error handler function is called with one argument , an :code:`argparse.ArgumentError` exception object.
+The error handler function is called with one argument , an :py:`argparse.ArgumentError` exception object.
 The string representation of the exception contains the full error message.
 
 .. code-block:: python
@@ -511,8 +525,8 @@ The string representation of the exception contains the full error message.
 
     cli.execute("command", error_handler=my_error_handler)  # "command" does not exist causing an error message
 
-The error_handler can be explicitly set to :code:`None`. In this case no error message is output but instead an
-:code:`argparse.ArgumentError` is raised which can be caught and acted upon.
+The error_handler can be explicitly set to :py:`None`. In this case no error message is output but instead an
+:py:`argparse.ArgumentError` is raised which can be caught and acted upon.
 
 .. code-block:: python
 
@@ -537,9 +551,9 @@ remote connection.
 
 This can be done by passing `TextIO <https://docs.python.org/3/library/io.html#text-i-o>`_ Streams for *stdout* and
 *stderr* to the :meth:`~.argparse_decorator.ArgParseDecorator.execute` method.
-This method will then redirect :code:`sys.stdout` and :code:`sys.sterr` to the given stream(s) before calling
+This method will then redirect :py:`sys.stdout` and :py:`sys.sterr` to the given stream(s) before calling
 :external:class:`argparse.ArgumentParser` and the command function. After the command has been called and before
-returning to the caller :code:`sys.stdout` and :code:`sys.stderr` are restored to their original values.
+returning to the caller :py:`sys.stdout` and :py:`sys.stderr` are restored to their original values.
 
 .. code-block:: python
 
@@ -547,7 +561,7 @@ returning to the caller :code:`sys.stdout` and :code:`sys.stderr` are restored t
 
     stdout = BufferedWriter()
 
-    @command
+    @cli.command
     def echo(text: str):
         print(text)
 
