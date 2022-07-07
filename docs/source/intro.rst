@@ -1,10 +1,10 @@
 Introduction
 ============
 
-argparseDecorator is a tool to ease working with the Python
-argparse_ library to build custom command line interpreters.
+argparseDecorator is a tool to ease working with the Python :external:mod:`argparse`
+library to build custom command line interpreters.
 
-Instead of setting up the 'ArgumentParser' object by hand and then adding
+Instead of setting up the :external:class:`~argparse.ArgumentParser` object by hand and then adding
 all the required arguments the argparseDecorator supplies a custom decorator_
 to mark functions as a command and to generate the ArgumentParser
 from the function signature.
@@ -44,10 +44,10 @@ will calculate the sum of the squares.
         print sum(values)
 
 
-:class:`.OneOrMore` [float] tells the decorator, that ``values`` must have at least one value and
+':class:`.OneOrMore` [float]' tells the decorator, that ``values`` must have at least one value and
 that it is accepting only valid numbers (``int`` or ``float``).
 
-``Option = False`` marks ``squared` as an option (starting with ``--``) and that it has
+``Option = False`` marks ``squared`` as an option (starting with ``--``) and that it has
 the the value ``True`` if set on the command line or ``False`` (the default) otherwise.
 
 The ``add`` command can now be used like this
@@ -81,8 +81,7 @@ that can not be easily written as annotations.
         print sum(values)
 
 
-Now the help command, which is supplied by the argparseDecorator, can output some
-information
+Now the help command, which is supplied by the argparseDecorator, will output the following information:
 
 .. code:: python
 
