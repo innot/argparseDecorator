@@ -141,6 +141,35 @@ class MyTestCase(unittest.TestCase):
         result = cli.execute("cmd2 --foo 100")
         self.assertEqual("100", result)
 
+    def test_type_in_brackets(self):
+        cli = ArgParseDecorator()
+
+        @cli.command
+        def sum1(values: float | OneOrMore):
+            return sum(values)
+
+        @cli.command
+        def sum2(values: OneOrMore[float]):
+            return sum(values)
+
+        result1 = cli.execute("sum1 10 20 30 40 50")
+        result2 = cli.execute("sum2 10 20 30 40 50")
+        self.assertEqual(result1, result2)
+
+    def test_custom_type(self):
+        cli = ArgParseDecorator()
+
+        @cli.command
+        def shorttitle(longtitle: hyphenated):
+            return longtitle
+
+        result = cli.execute('shorttitle "The Tale of Two Cities"')
+        self.assertEqual("the-tale-of-two-citi", result)
+
+
+def hyphenated(string: str) -> str:
+    return '-'.join([word[:4] for word in string.casefold().split()])
+
 
 if __name__ == '__main__':
     unittest.main()

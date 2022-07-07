@@ -222,6 +222,11 @@ class MyTestCase(unittest.TestCase):
         parser.execute("inp", stdin=stdin, stdout=stdout)
         self.assertTrue(stdout.getvalue().startswith("foobar"))
 
+    def test_special_split(self):
+        self.assertEqual(["foo", "bar", "baz"], special_split("foo bar baz"))
+        self.assertEqual(["foo", "bar", "baz"], special_split("  foo  bar  baz  "))
+        self.assertEqual(["foo", "bar baz"], special_split('foo "bar baz"'))
+        self.assertEqual(['cmd', "'foo bar'"], special_split('cmd "\'foo bar\'"'))
 
-if __name__ == '__main__':
-    unittest.main()
+    if __name__ == '__main__':
+        unittest.main()

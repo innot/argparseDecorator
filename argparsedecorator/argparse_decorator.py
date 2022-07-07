@@ -33,6 +33,7 @@
 """
 
 import asyncio
+import re
 import sys
 from argparse import ArgumentParser, Namespace, ArgumentError
 from typing import List, Union, Callable, Any, Type, Optional, Dict, Tuple, TextIO
@@ -254,7 +255,7 @@ class ArgParseDecorator:
                 sys.stderr = stderr
 
             argparser: ArgumentParser = self.argumentparser
-            named_args = argparser.parse_args(commandline.split())
+            named_args = argparser.parse_args(special_split(commandline))
             func: Callable = named_args.func
             node: ParserNode = named_args.node
             args, kwargs = get_arguments_from_namespace(named_args, node)
@@ -354,3 +355,11 @@ def get_arguments_from_namespace(
             kwargs[name] = arg
 
     return args, kwargs
+
+
+def special_split(string: str) -> List[str]:
+    """
+    Split the given string at whitespaces, but keep any content in quotes intact.
+    """
+
+    return [t.strip('"') for t in re.findall(r'[^\s"]+|"[^"]*"', string)]
