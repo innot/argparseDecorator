@@ -31,7 +31,7 @@ With this a command can be executed like this
 
 argparseDecorator makes heavy use (and propably misuse) of type_annotations_ to
 pass additional information to the ArgumentParser. For example the following
-command will add up a list of numbers or, if '--squared' is added to the command,
+command will add up a list of numbers or, if :code:`--squared` is added to the command,
 will calculate the sum of the squares.
 
 .. code-block:: python
@@ -43,12 +43,13 @@ will calculate the sum of the squares.
         print sum(values)
 
 
-'OneOrMore[float]' tells the decorator, that 'values' must have at least one value and
-that it is accepting only valid numbers (int or float). 'Option = False' marks 'squared'
-as an option (starting with '--') and that it has the the value 'True' if set on the
-command line or 'False' (the default) otherwise.
+:code:`OneOrMore[float]` tells the decorator, that :code:`values` must have at least one value and
+that it is accepting only valid numbers (:code:`int` or :code:`float`).
 
-The 'add' command can now be used like this
+:code:`Option = False` marks :code:`squared` as an option (starting with :code:`--`) and that it has
+the the value :code:`True` if set on the command line or :code:`False` (the default) otherwise.
+
+The :code:`add` command can now be used like this
 
 .. code:: python
 
@@ -58,9 +59,7 @@ The 'add' command can now be used like this
     >>> cli.execute("add --squared 1 2 3 4")
     30
 
-Take a look at the Annotations_ API for all supported annotations and more examples.
-
-.. _Annotations: https://argparseDecorator.readthdocs.io/.
+Take a look at the :mod:`~.argparsedecorator.annotations` API for all supported annotations and more examples.
 
 The argparseDecorator also uses the docstring_ of a decorated function to get a description
 of the command that is used for help and some additional meta information about arguments

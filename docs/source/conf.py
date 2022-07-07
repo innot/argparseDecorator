@@ -33,7 +33,8 @@ release = '1.0'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosectionlabel',
-    'sphinx.ext.coverage'
+    'sphinx.ext.coverage',
+    'sphinx.ext.intersphinx'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -43,6 +44,9 @@ templates_path = ['_templates']
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
+
+# Intersphinx mappings
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -57,3 +61,13 @@ html_theme = 'sphinx_rtd_theme'
 # html_static_path = ['_static']
 
 default_role = 'py:obj'
+
+# report all broken references
+nitpicky = True
+nitpick_ignore = [
+    ('py:class', 'argparse.ArgumentError'),  # This Exception is not documented in the Python docs.
+    ('py:exc', 'ArgumentError'),
+    ('py:obj', 'argparsedecorator.annotations.T'),  # Ignore the generic Typedef T
+    ('py:class', 'argparsedecorator.argument.T'),
+    ('py:class', 'ParserNode'),  # autodoc does not like self refering types.
+]

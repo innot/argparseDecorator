@@ -11,16 +11,16 @@ instead of using annotations.
 
 Other options that are not supported are:
 
-#. Using the `dest <https://docs.python.org/3/library/argparse.html#dest>` option
+#. Using the `dest <https://docs.python.org/3/library/argparse.html#dest>`_ option
 
-    `dest` changes the name of an argument to some other internal value. Using Annotations the `dest` of an
-    argument must always be the default, that is the name of the annotated variable,
+    :code:`dest` changes the name of an argument to some other internal value. Using Annotations the :code:`dest`
+    of an argument must always be the default, that is the name of the annotated variable,
     otherwise the mapping of the return values from
     `ArgumentParser.parse_args <https://docs.python.org/3/library/argparse.html#the-parse-args-method>`_
     to the variable names of the decorated python command function will get messed up.
-    Therefore the `dest` argument option is not supported by the *ArgParseDecorator* library.
+    Therefore the :code:`dest` argument option is not supported by the *ArgParseDecorator* library.
 
-    This affects the following other option, which only work by setting `dest` and is therefore also not
+    This affects the following other option, which only work by setting :code:`dest` and is therefore also not
     directly supported as annotations:
 
     * `append_const <https://docs.python.org/3/library/argparse.html#action>`_ actions.
@@ -48,8 +48,8 @@ Other options that are not supported are:
     * `parents <https://docs.python.org/3/library/argparse.html#parents>`_: *ArgParseDecorator* manages only a
       single command tree and would not know how to call commands functions from other *ArgumentParsers*
 
-    * `prefix_chars <https://docs.python.org/3/library/argparse.html#prefix-chars>`_: Use of ``-`` and ``--`` to
-      mark :class:`~argparse_decorator.annotations.Flag` and :class:`~argparse_decorator.annotations.Option`
+    * `prefix_chars <https://docs.python.org/3/library/argparse.html#prefix-chars>`_: Use of :code:`-` and :code:`--` to
+      mark :class:`~.annotations.Flag` and :class:`~.annotations.Option`
       is hardwired into the ArgParseDecorator logic and can not be easily changed.
 
     * `add_help <https://docs.python.org/3/library/argparse.html#add-help>`_: *ArgParseDecorator* has its own

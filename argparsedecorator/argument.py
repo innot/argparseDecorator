@@ -5,7 +5,7 @@ T = TypeVar('T')
 
 
 class Argument:
-    def __init__(self, name: str, eval_globals: Dict[str, any] = None):
+    def __init__(self, name: str, eval_globals: Dict[str, Any] = None):
         self.name = name
         self._globals = eval_globals if eval_globals else globals()
         self._alias: List[str] = list()
@@ -127,14 +127,13 @@ class Argument:
         self._default = value
 
     @property
-    def type(self) -> callable:
+    def type(self) -> Callable:
         """The type of the Argument. Can be any callable type.
         Can be a string with the name of the callable.
 
         .. warning::
-            As the conversion is done by calling :func:'eval()' which is
-            a security issue. Do not set this property to any arbitrary
-            user input.
+            As the conversion is done by calling `eval() <https://docs.python.org/3/library/functions.html#eval>`_
+            which is a security issue. Do not set this property to any arbitrary user input.
 
         If set once any further attempts to change to a different type
         will raise an exception.

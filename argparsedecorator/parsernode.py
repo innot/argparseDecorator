@@ -30,22 +30,22 @@ from .nonexiting_argumentparser import NonExitingArgumentParser
 
 
 class ParserNode:
-    """Single Node of the parser tree.
+    """
+    Single Node of the parser tree.
+
     A tree of nodes is used to represent the complete command hierarchy.
-    The root node is generated automatically be the :class:'ArgParseDecorator'. The children
-    are added by successive calls from the :method:'command' overlay operator.
-    Once the tree is finished, the actual :class:'ArgumentParser' representing all commands and
-    their arguments of this node can be accessed by the :method:'argumentparser' property.
+    The root node is generated automatically by the :class:`.ArgParseDecorator`.
 
-    Each 'ParserNode' has a :method:'root' property to get the root node.
+    The children are added by successive calls from the :meth:`.ArgParseDecorator.command` overlay operator.
+    Once the tree is finished, the actual :external:class:`argparse.ArgumentParser` representing all commands and
+    their arguments of this node can be accessed by the :meth:`argumentparser` property.
 
-    :param title: The name of the command, 'None' for the root node
-    :type title: str
-    :param parent:  The parent node of the this node. Defaults to 'None' for a root node.
-    :type parent:   ParserNode object
-    :param kwargs:  Other arguments for :class:'ArgumentParser' (for the root node) or
-                    for :method:'ArgumentParser.add_subparsers' (all other nodes)
-    :type kwargs:   dict of variable keyword arguments
+    Each *ParserNode* has a :meth:`root` property to get the root node.
+
+    :param title: The name of the command, :code:`None` for the root node
+    :param parent:  The parent node of the this node. Defaults to :code:'None' for a root node.
+    :param kwargs:  Other arguments for :external:class:`argparse.ArgumentParser` (for the root node) or
+                    for :external:meth:`argparse.ArgumentParser.add_subparsers` (all other nodes)
     """
 
     def __init__(self,
@@ -104,9 +104,11 @@ class ParserNode:
 
     @property
     def argumentparser(self) -> ArgumentParser:
-        """Get the ArgumentParser representing this Node.
+        """
+        Get the ArgumentParser representing this Node.
+
         When read the returned object represents the current state of the Node.
-        In case of any change to this Node or to the Tree this 'ArgumentParser'
+        In case of any change to this Node or to the Tree this :external:class:`argparse.ArgumentParser`
         is regenerated.
         """
         if not self._parser:
@@ -118,8 +120,9 @@ class ParserNode:
     def argparser_class(self) -> Type[ArgumentParser]:
         """
         The class to use for building the parser.
-        Default is the :class:'NonExitingArgumentParser' class, a subclass of
-        :class:'argparse.ArgumentParser' that does not call sys.exit().
+
+        Default is the :class:`.NonExitingArgumentParser` class, a subclass of
+        :external:class:`argparse.ArgumentParser` that does not call sys.exit().
         It can be changed to subclass of ArgumentParser.
         Only relevant for the root Node. If changed on any other child node the class will be
         passed to the root node and, if the parser has already been generated, the whole parser
@@ -149,8 +152,9 @@ class ParserNode:
     def function(self) -> Callable[[Dict[str, Any]], Any]:
         """
         The function that implements the command.
+
         When set extract all available information from the function signature
-        and from the function docs.
+        and from the function docstring.
         """
         return self._func
 
@@ -169,10 +173,13 @@ class ParserNode:
 
     @property
     def function_globals(self) -> Dict[str, Any]:
-        """Get the globals from the command function.
-        Autmatically retrieved when the :meth:`function` property is set to a
-        function.
-        This property is read only."""
+        """
+        Get the globals from the command function.
+
+        Autmatically retrieved when the :meth:`function` property is set to a function.
+
+        This property is read only.
+        """
         if self._func_globals:
             return self._func_globals
         else:
@@ -186,25 +193,31 @@ class ParserNode:
 
     @property
     def bound_method(self):
-        """Is 'True' when the command function is a bound method,
-        i.e. if it requires a 'self' argument.
+        """
+        Is :code:`True` when the command function is a bound method,
+        i.e. if it requires a :code:`self` argument.
+
         This property is read only."""
         return self._func_has_self
 
     @property
     def arguments(self) -> Dict[str, Argument]:
-        """A dictionary of all arguments set for this node.
-        Read only property. """
+        """
+        A dictionary of all arguments set for this node.
+
+        Read only property.
+        """
         return self._arguments
 
     def get_argument(self, name: str) -> Optional[Argument]:
         """
         Get the argument with the given name for this command.
-        If there is no argument with exactly this name then this
-        method will append one or two `-` to find a match.
 
-        :param name: name of the argument, e.g. `--foo`
-        :return: The :class:'Argument' object or `None` if no argument with this name.
+        If there is no argument with exactly this name then this
+        method will append one or two :code:`-` to find a match.
+
+        :param name: name of the argument, e.g. :code:`--foo`
+        :return: The :class:`.Argument` object or :code:`None` if no argument with this name.
         """
         for n in [name, '-' + name, '--' + name]:
             if n in self._arguments:
@@ -214,9 +227,11 @@ class ParserNode:
 
     def add_argument(self, arg: Argument) -> None:
         """
-        Add a single :class:'Argument' to this node.
+        Add a single :class:`.Argument` to this node.
+
         The Argument must be unique, i.e. each Argument may be added only once.
-        :param arg: single :class:'Argument' object.
+
+        :param arg: single :class:`.Argument` object.
         """
         if self.has_argument(arg):
             # There can be only one
@@ -241,9 +256,12 @@ class ParserNode:
 
     @property
     def add_help(self) -> bool:
-        """'True' if the help system of ArgumentParser is active (i.e. [-h] flag for all commands).
-        If 'False' this is inhibited. This is useful if the caller supplies its own help system.
-        Default is 'False'.
+        """
+        :code:`True` if the help system of ArgumentParser is active (i.e. [-h] flag for all commands).
+
+        If :code:`False` this is inhibited. This is useful if the caller supplies its own help system.
+
+        Default is :code:`False`.
         """
         return self._add_help
 
@@ -257,14 +275,16 @@ class ParserNode:
             self.root.generate_parser(None)
 
     def generate_parser(self, parentparser) -> None:
-        """Build the actual :class:'ArgumentParser' object for this Node.
-        If it is not the root Node then the 'ArgumentParser' from the parent
+        """
+        Build the actual :external:class:`argparse.ArgumentParser` object for this Node.
+
+        If it is not the root Node then the *ArgumentParser* from the parent
         must be supplied to add the parser representing this node.
         If this Node has children then they will be generated as well.
         Normally this method should only be called once for the root Node.
 
-        :param parentparser: The ArgumentParser to add this Parser to.
-        :type parentparser: ArgumentParser or subclass thereof
+        :param parentparser: The *ArgumentParser* to add this Parser to.
+        :type parentparser: :external:class:`argparse.ArgumentParser` or subclass thereof
         """
         if not self._parent:
             # root node is special. It generates the ArgumentParser starting point
@@ -293,8 +313,9 @@ class ParserNode:
 
     def get_node(self, command: Union[str, List[str]]) -> 'ParserNode':
         """
-        Get the ParserNode representing the given command. The command can be either
-        a single name or a list with a command and subcommand names.
+        Get the ParserNode representing the given command.
+
+        The command can be either a single name or a list with a command and subcommand names.
         A new node will be created if no node for a command / subcommand exists.
         Should be used on the root node to make the command global.
 
@@ -321,10 +342,11 @@ class ParserNode:
     def has_node(self, command: Union[str, List[str]]) -> bool:
         """
         Check if a Node for the given command exists in the Tree.
+
         Best if used on the rootnode to check the whole tree.
 
         :param command: single command name or list of command names (for subcommands)
-        :return: 'True' if node exists
+        :return: :code:`True` if node exists
         """
         names: List[str] = [command] if isinstance(command, str) else command.copy()
         if not names:
@@ -345,7 +367,10 @@ class ParserNode:
 
     def get_command_dict(self) -> Dict[str, str]:
         """
-        Get a dictionary with all commands in a form suitable for the promptToolkit help function.
+        Get a dictionary with all commands in a form suitable for the
+        `Python Prompt Toolkit <https://python-prompt-toolkit.readthedocs.io/en/master/>`_
+        help function.
+
         :returns: dict
         """
 
@@ -552,9 +577,7 @@ class ParserNode:
 
     def analyse_docstring(self, func: Callable) -> None:
         """
-        Parse the docstring to extract the description (anything before the first metadata) and
-        any metadata.
-        Metadata
+        Parse the docstring to extract the description (anything before the first metadata) and any metadata.
         """
 
         description: List[str] = []
@@ -670,7 +693,7 @@ class ParserNode:
 
 
 def split_strip(string: str, sep: str = ',') -> List[str]:
-    """Split a string and remmove all whitespaces."""
+    """Split a string and remove all whitespaces."""
     splitted = string.split(sep)
     return [s.strip() for s in splitted]
 
@@ -736,7 +759,8 @@ def check_explicit_type(part: str, arg: Argument):
 def get_bracket_content(string: str) -> str:
     """
     Find the outermost brackets and return their content.
-    For example 'foo[bar[baz]]' will return 'bar[baz]'
+    For example :code:`foo[bar[baz]]` will return :code:`bar[baz]`
+
     :param string: any string
     :return: bracket content or empty string if there were no brackets or they were empty
     """

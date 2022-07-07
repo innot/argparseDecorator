@@ -20,17 +20,15 @@
     of commands and sub-commands.
     The nodes have a reference to the decorated function which is used later to execute the command.
 
-    When :meth:`execute` is called the *ParserNode* tree is converted to an
-    `ArgumentParser <https://docs.python.org/3/library/argparse.html#argumentparser-objects>`_
-    object, which is then used to analyse the given command line.
-    The result from the
-    `ArgumentParser.parse_args() <https://docs.python.org/3/library/argparse.html#the-parse-args-method>`_
+    When :meth:`.execute` is called the :class:`~.parsernode.ParserNode` tree is converted to an
+    :class:`argparse.ArgumentParser` object, which is then used to analyse the given command line.
+    The result from the :external:meth:`argparse.ArgumentParser.parse_args`
     call is then converted to arguments of the decorated function and finally the function
     is called with the arguments and its (optional) return value is passed on to the caller of
     :meth:`.execute`.
 
     The only other public method of this Class is the :meth:`~ArgParseDecorator.add_argument`
-    decorator, which can be used to pass arguments directly to the underlying *ArgumentParser* in
+    decorator, which can be used to pass arguments directly to the underlying :code:`ArgumentParser` in
     case some special functionality of the argparse library is needed.
 """
 
@@ -51,9 +49,7 @@ def default_error_handler(exc: ArgumentError):
 
 class ArgParseDecorator:
     """
-    Build python
-    `ArgumentParser <https://docs.python.org/3/library/argparse.html#argumentparser-objects>`_
-    from decorated functions.
+    Build python :external:class:`argparse.ArgumentParser` from decorated functions.
 
     It uses the signature and the annotations of the decorated class to determine all arguments
     and their types.
@@ -62,19 +58,18 @@ class ArgParseDecorator:
 
     :param helpoption: Either
 
-        *  *"help"* to automatically create a help command, or
-        *  *"-h"* to automatically add a *-h/--help* argument to each command (argparse library default), or
-        *  *None* to disable any automatically generated help.
+        *  :code:`"help"` to automatically create a help command, or
+        *  :code:`"-h"` to automatically add a :code:`-h/--help` argument to each command (argparse library default), or
+        *  :code:`None` to disable any automatically generated help.
 
-        Defaults to *"help"*
-    :param hyph_replace: string to be replaced by *-* in command names,
-        defaults to *__* (two underscores)
+        Defaults to :code:`"help"`
+    :param hyph_replace: string to be replaced by :code:`-` in command names,
+        defaults to :code:`__` (two underscores)
     :param argparser_class: Class to be used for ArgumentParser,
-        defaults to :class:`~argparsedecorator.nonexiting_argumentparser.NonExitingArgumentParser`
-    :type argparser_class: `ArgumentParser <https://docs.python.org/3/library/argparse.html#argumentparser-objects>`_
-        or subclass thereof.
+        defaults to :class:`~.nonexiting_argumentparser.NonExitingArgumentParser`
+    :type argparser_class: :external:class:`argparse.ArgumentParser` or subclass thereof.
     :param kwargs: Other arguments to be passed to the ArgumentParser,
-        e.g. *description* or *allow_abbrev*
+        e.g. :code:`description` or :code:`allow_abbrev`
     """
 
     def __init__(self,
@@ -110,9 +105,7 @@ class ArgParseDecorator:
     @property
     def argumentparser(self) -> ArgumentParser:
         """
-        The generated
-        `ArgumentParser <https://docs.python.org/3/library/argparse.html#argumentparser-objects>`_
-        object.
+        The generated :external:class:`argparse.ArgumentParser` object.
 
         This property is read only
         """
@@ -126,14 +119,13 @@ class ArgParseDecorator:
     @property
     def rootnode(self) -> ParserNode:
         """
-        The root node of the :class:`~argparsedecorator.parsernode.ParserNode` tree of commands.
+        The root node of the :class:`~.parsernode.ParserNode` tree of commands.
         While the tree can be modified care must be taken to regenerate it after modifications by
-        calling :meth:`~argparsedecorator.parsernode.ParserNode.generate_parser` before calling
-        :meth:`execute`.
+        calling :meth:`~.parsernode.ParserNode.generate_parser` before calling :meth:`execute`.
         
         This property is read only.
 
-        :return: The root node of the *ParserNode* tree.
+        :return: The root node of the :code:`ParserNode` tree.
         """
         return self._rootnode
 
@@ -148,11 +140,9 @@ class ArgParseDecorator:
         information about its arguments.
 
         :param args: Optional arguments that are passed directly to the
-            `ArgumentParser.add_subparser() <https://docs.python.org/3/library/argparse.html#sub-commands>`_
-            method.
+            :external:meth:`~argparse.ArgumentParser.add_subparsers` method of the underlying *ArgumentParser*.
         :param kwargs: Optional keyword arguments that are passed directly to the
-            `ArgumentParser.add_subparser() <https://docs.python.org/3/library/argparse.html#sub-commands>`_
-            method.
+            :external:meth:`~argparse.ArgumentParser.add_subparsers` method of the underlying *ArgumentParser*.
         :return: The decorator function
         """
 
@@ -174,7 +164,7 @@ class ArgParseDecorator:
         return decorator
 
     def add_argument(self, *args: str, **kwargs: Any) -> Callable:
-        r"""
+        """
         Decorator to add an argument to the command.
 
         This is an alternative way to add arguments to a function.
@@ -182,9 +172,9 @@ class ArgParseDecorator:
         the function signature and its annotations are not sufficient to accurately
         describe an argument. In this case the :meth:`.add_argument` decorator can be used.
         Any pararmeter to this decorator is passed directly to
-        `argparse.add_argument() <https://docs.python.org/3/library/argparse.html#the-add-argument-method>`_
+        :external:meth:`~argparse.ArgumentParser.add_argument` method of the underlying *ArgumentParser*
 
-        The decorated function must have an argument of the same name or use \*args and \*\*kwargs
+        The decorated function must have an argument of the same name or use :code:`*args` and :code:`**kwargs`
         arguments to retrieve the value of these arguments.
 
         Example::
@@ -197,9 +187,9 @@ class ArgParseDecorator:
                 foo = kwargs['foo']
 
         :param args: Optional arguments that are passed directly to the
-            ArgumentParser.add_argument() method.
+            :code:`ArgumentParser.add_argument()` method.
         :param kwargs: Optional keyword arguments that are passed directly to the
-            ArgumentParser.add_argument() method.
+            :code:`ArgumentParser.add_argument()` method.
         :return: The decorator function
 
         """
@@ -222,32 +212,32 @@ class ArgParseDecorator:
 
         .. note::
 
-            The *base* must be supplied if the method implementing the command is a bound method,
-            i.e. having *self* as the first argument. It is not required if the command is
+            The :code:`base` must be supplied if the method implementing the command is a bound method,
+            i.e. having :code:`self` as the first argument. It is not required if the command is
             implemented as a function (unbound) or an inner function (already bound).
 
-        :param commandline: A string with a command and arguments (e.g. *"command --flag arg"*)
-        :param base: an object that is passed to commands as the *self* argument.
-            Required if any command method has *self*, not required otherwise.
+        :param commandline: A string with a command and arguments (e.g. :code:`"command --flag arg"`)
+        :param base: an object that is passed to commands as the :code:`self` argument.
+            Required if any command method has :code:`self`, not required otherwise.
         :param error_handler: callback function to handle errors when parsing the command line.
-            The handler takes a single argument with a ``ArgumentError`` exception.
-            The default is a function that just prints the error the `stderr`.\n
-            If set to *None* parsing errors will result in an exception.
+            The handler takes a single argument with a :code:`ArgumentError` exception.
+            The default is a function that just prints the error the :code:`stderr`.\n
+            If set to :code:`None` parsing errors will result in an exception.
         :param stdout: Set to redirect the output of *ArgumentParser* (e.g. help texts) and the
             called command function to a different output, e.g a ssh stream.\n
-            Optional, default is `sys.stdout`
-        :param stderr: Set to redirect error messages from the 'ArgumentParser' and the
+            Optional, default is :code:`sys.stdout`
+        :param stderr: Set to redirect error messages from the *ArgumentParser* and the
             called command function to a different output, e.g a ssh stream.\n
-            Optional, default is `sys.stderr`
+            Optional, default is :code:`sys.stderr`
         :param stdin: Set to redirect the input of the called command function to
             an input other than the current terminal, e.g a ssh stream.\n
-            Optional, default is `sys.stdin`
+            Optional, default is :code:`sys.stdin`
 
         :return: anything the command function/method returns.
-        :raises ValueError: if the command function requires a *self* parameter, but no *base*
+        :raises ValueError: if the command function requires a :code:`self` parameter, but no :code:`base`
             argument was supplied.
-        :raises ArgumentError: if the given command line contains errors and the error_handler
-            is set to 'None'.
+        :raises ArgumentError: if the given command line contains errors and the :code:`error_handler`
+            is set to :code:`None`.
         """
         old_stdin = sys.stdin
         old_stdout = sys.stdout
@@ -327,7 +317,7 @@ class ArgParseDecorator:
 
     def _node_from_func(self, func: Callable) -> ParserNode:
         """
-        Get the :class:'ParserNode' for the given function or method.
+        Get the :class:'~.parsernode.ParserNode' for the given function or method.
         If the Node does not exist it will be created.
         :param func: a callable
         :return: a ParserNode
@@ -342,8 +332,8 @@ class ArgParseDecorator:
 def get_arguments_from_namespace(
         args: Namespace,
         node: ParserNode) -> Tuple[List[str], Dict[str, Any]]:
-    r"""
-    Convert the Namespace object returned by parse_args() into  \*args, \**kwargs objects.
+    """
+    Convert the Namespace object returned by :code:`parse_args()` into a (:code:`*args`, :code:`**kwargs`) tuple.
     """
     all_args = vars(args)
 

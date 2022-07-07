@@ -32,9 +32,9 @@ class Flag:
     """
     Marks the argument as a Flag.
 
-    A Flag starts with a single hyphen `-`.
+    A Flag starts with a single hyphen :code:`-`.
 
-    If the Flag does not require any arguments (just present or not present) add a `=False` as its
+    If the Flag does not require any arguments (just present or not present) add a :code:`= False` as its
     default or add a :class:`StoreTrueAction` annotation.
 
     .. code-block::
@@ -58,9 +58,9 @@ class Option:
     """
     Marks the argument as an Option.
 
-    A Option starts with a double hyphen `--`.
+    A Option starts with a double hyphen :code:`--`.
 
-    If the Option does not require any arguments (just present or not present) add a `=False`
+    If the Option does not require any arguments (just present or not present) add a :code:`= False`
     as its default or add a :class:`StoreTrueAction` annotation.
 
     .. code-block::
@@ -84,13 +84,13 @@ class OneOrMore(List[T]):
     """
     Tells the decorator that this argument requires one or more values.
 
-    Internally this will add the `nargs='?'` option to the argument.
+    Internally this will add the :code:`nargs='?'` option to the argument.
 
-    OneOrMore may specify a Type like `int` in square brackets to tell the decorator what
+    OneOrMore may specify a Type like :code:`int` in square brackets to tell the decorator what
     values are acceptable.
 
     On the Python side this will set the type of the argument to
-    a generic `List` with an optional type as required (default is `str`)
+    a generic :code:`List` with an optional type as required (default is :code:`str`)
 
     .. code-block::
 
@@ -113,13 +113,13 @@ class ZeroOrMore(List[T]):
     """
     Tells the decorator that this argument can have any number of entries, including zero entries.
 
-    Internally this will add the `nargs='*'` option to the argument.
+    Internally this will add the :code:`nargs='*'` option to the argument.
 
-    ZeroOrMore may specify a Type like `int` in square brackets to tell the decorator what
+    ZeroOrMore may specify a Type like :code:`int` in square brackets to tell the decorator what
     values are acceptable.
 
     On the Python side this will set the type of the argument to
-    a generic `List` with an optional type as required (default is `str`)
+    a generic :code:`List` with an optional type as required (default is :code:`str`)
 
     .. code-block::
 
@@ -142,9 +142,9 @@ class ZeroOrOne(Generic[T]):
     """
     Tells the decorator that this argument can have either one or zero entries
 
-    Internally this will add the `nargs='?'` option to the argument.
+    Internally this will add the :code:`nargs='?'` option to the argument.
 
-    ZeroOrMore may specify a Type like `int` in square brackets to tell the
+    ZeroOrMore may specify a Type like :code:`int` in square brackets to tell the
     decorator what values are acceptable.
 
     .. code-block::
@@ -167,13 +167,13 @@ class Exactly1(Generic[T]):
     """
     Tells the decorator that this argument has exactly one entry
 
-    Internally this will add the `nargs=1` option to the argument.
+    Internally this will add the :code:`nargs=1` option to the argument.
 
-    `Exactly1` may specify a Type like `int` in square brackets to tell the
+    :code:`Exactly1` may specify a Type like :code:`int` in square brackets to tell the
     decorator what value is acceptable.
 
     On the Python side this will set the type of the argument to
-    a generic `List` with an optional type as required (default is `str`)
+    a generic :code:`List` with an optional type as required (default is :code:`str`)
 
     .. code-block::
 
@@ -271,7 +271,7 @@ class StoreAction:
 
     This is the default action for an argument and is therefore usually not required.
 
-    Internally this will add the `action="store"` option to the argument.
+    Internally this will add the :code:`action="store"` option to the argument.
 
     See `argparse: action <https://docs.python.org/3/library/argparse.html#action>`__
     for details.
@@ -301,7 +301,7 @@ class CustomAction(Generic[T]):
         def command(arg: CustomAction[MyAction]):
             ...
 
-    Internally this will add the `action=MyAction` option to the argument.
+    Internally this will add the :code:`action=MyAction` option to the argument.
 
     Refer to `argument actions <https://docs.python.org/3/library/argparse.html#action>`_ and
     `action classes <https://docs.python.org/3/library/argparse.html#action-classes>`_ for more details
@@ -318,7 +318,7 @@ class StoreConstAction:
     Tells the *ArgumentParser* to assign the given default value to the argument whenever it
     is present on the command line.
 
-    This is similar to :class:`StoreTrueAction` but with a generic constant instead of the fixed `True`.
+    This is similar to :class:`StoreTrueAction` but with a generic constant instead of the fixed :code:`True`.
 
     .. code-block::
 
@@ -344,8 +344,8 @@ class StoreConstAction:
             cli.execute("cmd --foo 100")    # returns 100
 
 
-    Internally this will add the `action="store_const"` option to the argument and take the given default and
-    set it as the `const=...` option.
+    Internally this will add the :code:`action="store_const"` option to the argument and take the given default and
+    set it as the :code:`const=...` option.
 
     See `argparse: action <https://docs.python.org/3/library/argparse.html#action>`__
     for details.
@@ -358,11 +358,11 @@ class StoreConstAction:
 
 class StoreTrueAction:
     """
-    Tells the *ArgumentParser* to set the argument to `True` whenever it is present on the command line
-    (and `False` if it is absent).
+    Tells the *ArgumentParser* to set the argument to :code:`True` whenever it is present on the command line
+    (and :code:`False` if it is absent).
 
 
-    This is a special case of :class:`StoreConstAction` with a constant value of `True`.
+    This is a special case of :class:`StoreConstAction` with a constant value of :code:`True`.
 
     .. code-block::
 
@@ -375,8 +375,8 @@ class StoreTrueAction:
 
     .. note::
 
-        Instead of using `StoreTrueAction` any :class:`Option` or :class:`Flag` can just be given a default of
-        ``False``. Internally this is converted to a `StoreTrueAction`.
+        Instead of using :class:`StoreTrueAction` any :class:`Option` or :class:`Flag` can just be given a default of
+        :code:`False`. Internally this is converted to a :class:`StoreTrueAction`.
 
         .. code-block::
 
@@ -388,7 +388,7 @@ class StoreTrueAction:
             parser.execute("cmd")               # returns False
 
 
-    Internally this will add the `action="store_true"` option to the argument.
+    Internally this will add the :code:`action="store_true"` option to the argument.
 
     See `argparse: action <https://docs.python.org/3/library/argparse.html#action>`_
     for details.
@@ -401,10 +401,10 @@ class StoreTrueAction:
 
 class StoreFalseAction:
     """
-    Tells the *ArgumentParser* to set the argument to `False` whenever it is present on the command line
-    (and `True` if it is absent).
+    Tells the *ArgumentParser* to set the argument to :code:`False` whenever it is present on the command line
+    (and :code:`True` if it is absent).
 
-    This is a special case of :class:`StoreConstAction` with a constant value of `False`.
+    This is a special case of :class:`StoreConstAction` with a constant value of :code:`False`.
 
     .. code-block::
 
@@ -417,8 +417,8 @@ class StoreFalseAction:
 
     .. note::
 
-        Instead of using `StoreFalseAction` any :class:`Option` or :class:`Flag` can just be given a default of
-        ``True``. Internally this is converted to a `StoreFalseAction`.
+        Instead of using :class:`StoreFalseAction` any :class:`Option` or :class:`Flag` can just be given a default of
+        :code:`True`. Internally this is converted to a :class:`StoreFalseAction`.
 
         .. code-block::
 
@@ -429,7 +429,7 @@ class StoreFalseAction:
             parser.execute("cmd --foo")         # returns False
             parser.execute("cmd")               # returns True
 
-    Internally this will add the `action="store_false"` option to the argument.
+    Internally this will add the :code:`action="store_false"` option to the argument.
 
     See `argparse: action <https://docs.python.org/3/library/argparse.html#action>`_
     for details.
@@ -454,7 +454,7 @@ class AppendAction(List[T]):
 
         parser.execute("cmd --foo 1 --foo 2")  # returns [1, 2]
 
-    Internally this will add the `action = "append"` option to the argument.
+    Internally this will add the :code:`action = "append"` option to the argument.
 
     See `argparse: action <https://docs.python.org/3/library/argparse.html#action>`_ for details.
     """
@@ -490,7 +490,7 @@ class CountAction(int):
     """
     Tells the *ArgumentParser* to just count the number of occurences of this argument on the command line.
 
-    This action always returns an `int` and can not be set to any type.
+    This action always returns an :code:`int` and can not be set to any type.
 
     .. code-block::
 
@@ -500,7 +500,7 @@ class CountAction(int):
 
         parser.execute("cmd -vvvv")   # returns 4
 
-    Internally this will add the `action="count"` option to the argument.
+    Internally this will add the :code:`action="count"` option to the argument.
 
     See `argparse: action <https://docs.python.org/3/library/argparse.html#action>`_
     for details.
@@ -537,16 +537,16 @@ class Choices(Generic[T]):
 
         Without `from __future__ import annotations <https://peps.python.org/pep-0563/>`_ Python versions
         prior to 3.10 do not like strings in type annotations. In this case the choices can be wrapped in a
-        `Literal <https://docs.python.org/3/library/typing.html#typing.Literal>`_ to tell
-        Python (or any type checker) to not evaluate them a load time.
+        `Literal <https://docs.python.org/3/library/typing.html#typing.Literal>`_ to tell Python
+        (or any type checker) to not evaluate them a load time.
 
         .. code-block::
 
             def command(arg1: Choices[Literal["foo", "bar"]], arg2: Choices[Literal[range(1,5)]])
 
     Internally the bracket content from *Choices* is parsed via
-    `eval <https://docs.python.org/3/library/functions.html#eval>`_, so nothing dangerous should be put there -
-    especially no functions of unknown source. The result from this is then added as `choices=...` to the argument.
+    :external:func:`eval`, so nothing dangerous should be put there - especially no functions of unknown source.
+    The result from this is then added as :code:`choices=...` to the argument.
 
     See `argparse: choices <https://docs.python.org/3/library/argparse.html#choices>`_ for more details.
     """
