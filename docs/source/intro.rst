@@ -44,7 +44,7 @@ will calculate the sum of the squares.
         print sum(values)
 
 
-:class:`.OneOrMore[float]` tells the decorator, that ``values`` must have at least one value and
+:class:`.OneOrMore` [float] tells the decorator, that ``values`` must have at least one value and
 that it is accepting only valid numbers (``int`` or ``float``).
 
 ``Option = False`` marks ``squared` as an option (starting with ``--``) and that it has
