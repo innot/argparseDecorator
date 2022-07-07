@@ -76,7 +76,7 @@ class has to be created.
     cli = ArgParseDecorator()
 
 
-The two main methods of the :class:`~.argparse_decorator.ArgParseDecorator` class are
+The two main methods of the *ArgParseDecorator* class are
 :meth:`~.argparse_decorator.ArgParseDecorator.command` and
 :meth:`~.argparse_decorator.ArgParseDecorator.execute`.
 
@@ -101,18 +101,18 @@ Arguments
 Take a look at the :class:`~argparsedecorator.argparse_decorator.ArgParseDecorator` API to see what optional
 arguments can be given when instantiating the class.
 
-Note that any keyword argument that :class:`~.argparse_decorator.ArgParseDecorator` does not handle itself
+Note that any keyword argument that *ArgParseDecorator* does not handle itself
 will be passed onto the the underlying :external:class:`argparse.ArgumentParser` class. Some options like
 `formatter_class <https://docs.python.org/3/library/argparse.html#formatter-class>`_ or
 `allow_abbrev <https://docs.python.org/3/library/argparse.html#allow-abbrev>`_ might be useful in some cases.
 
-However some options of :external:class:`~argparse.ArgumentParser` are not useful and should not be used.
+However some options of :external:class:`argparse.ArgumentParser` are not useful and should not be used.
 Take a look at the :ref:`Limitations` chapter for more info on which options should be avoided.
 
 Help
 ++++
 
-By default :external:class:`~argparse.ArgumentParser` adds a
+By default :external:class:`argparse.ArgumentParser` adds a
 `-h/--help <https://docs.python.org/3/library/argparse.html#add-help>`_ argument to every command.
 This is somewhat ugly for a CLI with many commands and every one having the same, obvious help argument.
 
@@ -184,7 +184,7 @@ When using this library to decorate methods within a class there is one caveat:
 
         cli = ArgParseDecorator()
 
-        @command
+        @cli.command
         def cmd(self, arg1, arg2, ...):
             ...
 
@@ -236,8 +236,9 @@ An alternative method would be the use of inner functions like this:
 Function Signature
 ------------------
 
-argparseDecorator makes heavy use of type_annotations_ to pass additional information to the ArgumentParser.
-This includes a number of custom Types which are used to provide additional information about the arguments.
+argparseDecorator makes heavy use of `type annotaions <https://docs.python.org/3/library/typing.html>`_
+to pass additional information to the ArgumentParser. This includes a number of custom types which are used to
+provide additional information about the arguments.
 
 For example the following
 command will add up a list of numbers or, if ``--squared`` is added to the command,
@@ -287,6 +288,49 @@ to internally add a single ``-`` to the argument. ``Option`` does the same, but 
 If an *Flag* or *Option* should have multiple names, e.g. a long Option name like ``--foobar`` and a short
 *Flag* name like ``-f`` an ``:alias --foobar: -f`` must be added to the docstring of the command function.
 See :ref:`Aliases` below for details.
+
+Argument Type
++++++++++++++
+
+The :external:class:`argparse.ArgumentParser` reads command-line arguments as simple strings. However it is often
+usefull to interpret the input as another type, such as :external:class:`int` or :external:class:`float`.
+
+This can be done by just annotating the argument with the required type in the normal Python fashion:
+
+.. code-block:: python
+
+    @cli.command
+    def add(value1: float, value2: float):
+        print(value1 + value2)
+
+    @cli.execute("add 1 2.5")   # output "3.5"
+    @cli.execute("add apple banana) # causes ValueError
+
+Some of the special annotations of argparseDecorator can also specify the type in brackets to make the code more
+readable:
+
+.. code-block:: python
+
+    @cli.command
+    def sum(values: OneOrMore[float]):
+        print(sum(values)
+
+is almost equivalent to
+
+.. code-block:: python
+
+    @cli.command
+    def sum(values: float | OneOrMore):
+        print(sum(values)
+
+but it is nicer to read and it also tells any type-checker that ``values`` is a :external:class:`~typing.List`
+of *floats* and not a union of a *float* and a generic *List*.
+
+Internally, when analyzing the annotations, the *argparseDecorator* will take anything that is not one of the built-in
+:mod:`.annotations`, call :external:func:`eval` on it and uses the result as the type.
+
+Take a look at the `argparse <https://docs.python.org/3/library/argparse.html#type>`_ documentation for more info
+what types are possible and how to implement custom types.
 
 Number of Values
 ++++++++++++++++
@@ -502,6 +546,27 @@ could come for example from a ssh connection.
 Internally the command line is parsed by the underlying :external:class:`argparse.ArgumentParser` instance and,
 if there are no errors, the command function (the first word of the command line) is called with all arguments.
 
+Using Quotes on the Command Line
+++++++++++++++++++++++++++++++++
+
+The *execute* method needs to first split the command line into a list of strings containing the
+command itself and all seperate arguments to make it usable for the :external:meth:`~argparse.ArgumentParser.parse_args`
+method. In doing so it will treat any text in double quotes ``"`` as a single entry and pass the string in quotes but
+without the quotes to *parse_args()*.
+
+For example
+
+.. code-block::
+
+    cli.execute('cmd foo bar')          # -> Split into ['cmd', 'foo', 'bar']
+    cli.execute('cmd "foo bar"')        # -> Split into ['cmd', 'foo bar']
+    cli.execute('cmd "\'foo bar\'"')    # -> Split into ['cmd', "'foo bar'"]
+
+.. note::
+
+    There is currently no way to pass an argument value **including** the quotes from the commandline input
+    to the command. However single quotes ``'`` can be used inside a quoted argument.
+
 Error Handling
 ++++++++++++++
 
@@ -559,13 +624,13 @@ returning to the caller :py:`sys.stdout` and :py:`sys.stderr` are restored to th
 
     cli = ArgParseDecorator()
 
-    stdout = BufferedWriter()
+    my_stdout = BufferedWriter()
 
     @cli.command
     def echo(text: str):
         print(text)
 
-    cli.execute("echo foobar", stdout=SomeStream)
+    cli.execute("echo foobar", stdout=my_stdout)
     print(stdout.getvalue())    # prints 'foobar'
 
 Redirecting Input
@@ -589,7 +654,6 @@ If any commands require further user input, e.g. for confirmation checks, the
     cli.execute("delete", stdin=my_stdin)   # will output "you have chosen 'yes'" immediatly
 
 
-.. _type_annotations: https://docs.python.org/3/library/typing.html
 .. _docstring: https://peps.python.org/pep-0257/
 .. _class variable: https://docs.python.org/3/tutorial/classes.html#class-and-instance-variables
 .. _sys.stderr: https://docs.python.org/3/library/sys.html#sys.stderr

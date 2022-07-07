@@ -23,7 +23,7 @@ copyright = '2022, Thomas Holland'
 author = 'Thomas Holland'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0'
+release = '1.0.2'
 
 # -- General configuration ---------------------------------------------------
 

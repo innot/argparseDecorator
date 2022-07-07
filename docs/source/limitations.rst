@@ -2,9 +2,9 @@ Limitations
 ===========
 
 While the :class:`~argparsedecorator.argparse_decorator.ArgParseDecorator` tries to make as much functionality of
-the argparse_ library available as possible in a decorator, there are some limitations.
+the :external:mod:`argparse` library available as possible in a decorator, there are some limitations.
 
-Some options of argparse_ could not be implemented in an elegant way using annotations.
+Some options of *argparse* could not be implemented in an elegant way using annotations.
 However, if these options are really required they can still be used by using the
 :meth:`~argparsedecorator.argparse_decorator.ArgParseDecorator.add_argument` decorator
 instead of using annotations.
