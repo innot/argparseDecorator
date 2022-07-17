@@ -246,5 +246,27 @@ class MyTestCase(unittest.TestCase):
         helptext = stdout.getvalue()
         self.assertFalse("debug" in helptext)
 
+
+class TestAsync(unittest.IsolatedAsyncioTestCase):
+
+    async def test_async_execute(self):
+        cli = ArgParseDecorator()
+
+        # first test a synchronous function
+        @cli.command
+        def test1() -> int:
+            return 42
+
+        result = await cli.execute_async("test1")
+        self.assertEqual(42, result)
+
+        # and now an asynchronous function
+        @cli.command
+        async def test2() -> int:
+            return 43
+
+        result = await cli.execute_async("test2")
+        self.assertEqual(43, result)
+
     if __name__ == '__main__':
         unittest.main()

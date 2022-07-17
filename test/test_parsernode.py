@@ -65,6 +65,31 @@ class MyTestCase(unittest.TestCase):
         testnode.function_globals = {"foo": 1}
         self.assertEqual({"foo": 1}, testnode.function_globals)
 
+    def test_coroutine(self):
+        root = ParserNode(None)
+
+        def test1():
+            pass
+
+        node = root.get_node("test1")
+        node.function = test1
+        self.assertFalse(node.coroutine)
+
+        async def test2():
+            pass
+
+        node = root.get_node("test2")
+        node.function = test2
+        self.assertTrue(node.coroutine)
+
+        class Testclass:
+            async def test3(self):
+                pass
+
+        node = root.get_node("test3")
+        node.function = Testclass.test3
+        self.assertTrue(node.coroutine)
+
     def test_has_node(self):
         root = ParserNode(None)
         # add a few nodes

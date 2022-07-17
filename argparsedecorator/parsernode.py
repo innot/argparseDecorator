@@ -17,6 +17,7 @@ with that function.
 from __future__ import annotations
 
 import argparse
+import asyncio
 import collections.abc
 import inspect
 import re
@@ -76,6 +77,7 @@ class ParserNode:
         self._func: Callable[..., Any] = self.no_command
         self._func_globals: Dict[str, Any] = {}
         self._func_has_self: bool = False
+        self._func_coroutine: bool = False
 
         self._parser: Union[ArgumentParser, None] = None
         self._subparser: Union[object, None] = None
@@ -167,6 +169,8 @@ class ParserNode:
             self._func_globals = function.__globals__  # type: ignore
         if hasattr(function, '__self__'):
             self._func_has_self = True
+        if asyncio.iscoroutinefunction(function):
+            self._func_coroutine = True
 
         self.analyse_signature(function)
         self.analyse_docstring(function)
@@ -197,8 +201,19 @@ class ParserNode:
         Is :code:`True` when the command function is a bound method,
         i.e. if it requires a :code:`self` argument.
 
-        This property is read only."""
+        This property is read only.
+        """
         return self._func_has_self
+
+    @property
+    def coroutine(self):
+        """
+        Is :code:`True` when the command function is a coroutine,
+        i.e. if it starts with :code:`async def`.
+
+        This property is read only.
+        """
+        return self._func_coroutine
 
     @property
     def arguments(self) -> Dict[str, Argument]:

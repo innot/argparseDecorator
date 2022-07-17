@@ -32,7 +32,6 @@
     case some special functionality of the argparse library is needed.
 """
 
-import asyncio
 import re
 import sys
 from argparse import ArgumentParser, Namespace, ArgumentError
@@ -279,9 +278,9 @@ class ArgParseDecorator:
                     raise ValueError(
                         f"Method {func.__name__} is a bound method and requires the "
                         f"'base' (self) parameter to be set.")
-                result = func(base, *args, **kwargs)
-            else:
-                result = func(*args, **kwargs)
+                args.insert(0, base)
+
+            result = func(*args, **kwargs)
 
         except ArgumentError as err:
             if error_handler:
@@ -296,21 +295,93 @@ class ArgParseDecorator:
 
         return result
 
-    async def execute_async(self, commandline: str) -> object:
+    async def execute_async(self, commandline: str, base: Optional = None,
+                            error_handler=default_error_handler,
+                            stdout: TextIO = None,
+                            stderr: TextIO = None,
+                            stdin: TextIO = None) -> Optional:
         """
-        Not yet working, do not use.
+        Parse a command line and execute it in a async coroutine.
 
-        :param commandline:
-        :return:
+        .. note::
+
+            The :code:`base` must be supplied if the method implementing the command is a bound method,
+            i.e. having :code:`self` as the first argument. It is not required if the command is
+            implemented as a function (unbound) or an inner function (already bound).
+
+        :param commandline: A string with a command and arguments (e.g. :code:`"command --flag arg"`)
+        :param base: an object that is passed to commands as the :code:`self` argument.
+            Required if any command method has :code:`self`, not required otherwise.
+        :param error_handler: callback function to handle errors when parsing the command line.
+            The handler takes a single argument with a :code:`ArgumentError` exception.
+            The default is a function that just prints the error to :code:`stderr`.\n
+            If set to :code:`None` parsing errors will result in an exception.
+        :param stdout: Set to redirect the output of *ArgumentParser* (e.g. help texts) and the
+            called command function to a different output, e.g a ssh stream.\n
+            Optional, default is :code:`sys.stdout`
+        :param stderr: Set to redirect error messages from the *ArgumentParser* and the
+            called command function to a different output, e.g a ssh stream.\n
+            Optional, default is :code:`sys.stderr`
+        :param stdin: Set to redirect the input of the called command function to
+            an input other than the current terminal, e.g a ssh stream.\n
+            Optional, default is :code:`sys.stdin`
+
+        :return: anything the command function/method returns.
+        :raises ValueError: if the command function requires a :code:`self` parameter, but no :code:`base`
+            argument was supplied.
+        :raises ArgumentError: if the given command line contains errors and the :code:`error_handler`
+            is set to :code:`None`.
         """
-        argparser: ArgumentParser = self.argumentparser
-        args = argparser.parse_args(commandline.split())
-        func = args.func
-        if asyncio.iscoroutinefunction(func):
-            # todo handle unbound methods / functions
-            result = await func(args)
-        else:
-            result = func(args)
+
+        # there is almost a complete duplicate of execute(), but I have found no elegant way
+        # to factor out the common parts.
+
+        old_stdin = sys.stdin
+        old_stdout = sys.stdout
+        old_stderr = sys.stderr
+        result = None
+
+        try:
+            # redirect input and output if required
+            if stdin:
+                sys.stdin = stdin
+            if stdout:
+                sys.stdout = stdout
+            if stderr:
+                sys.stderr = stderr
+
+            argparser: ArgumentParser = self.argumentparser
+            named_args = argparser.parse_args(special_split(commandline))
+            func: Callable = named_args.func
+            node: ParserNode = named_args.node
+            args, kwargs = get_arguments_from_namespace(named_args, node)
+
+            if node.bound_method and func != self.help:
+                if base is None:
+                    # do not pass None as self - this will propably cause errors further
+                    # down. Fail cleanly instead.
+                    raise ValueError(
+                        f"Method {func.__name__} is a bound method and requires the "
+                        f"'base' (self) parameter to be set.")
+                args.insert(0, base)
+
+            # handle both coroutines and normal functions
+            # so async an non-async commands can be mixed.
+            if node.coroutine:
+                result = await func(*args, **kwargs)
+            else:
+                result = func(*args, **kwargs)
+
+        except ArgumentError as err:
+            if error_handler:
+                error_handler(err)
+            else:
+                raise err  # just pass the exception to the caller
+        finally:
+            # restore in- and output
+            sys.stdin = old_stdin
+            sys.stdout = old_stdout
+            sys.stderr = old_stderr
 
         return result
 
