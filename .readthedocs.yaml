@@ -30,5 +30,5 @@ python:
     - method: pip
       path: .
       extra_requirements:
-        - asyncssh
+        - examples
     - requirements: requirements.txt

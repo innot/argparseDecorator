@@ -1,0 +1,2 @@
+asyncssh~=2.11.0
+prompt-toolkit~=3.0.30
