@@ -135,7 +135,7 @@ class BaseCLI:
     """Prompt text to display. Override as required."""
 
     cli = ArgParseDecorator()
-    """The :class:`ArgParseDecorator` used to decorate command methods."""
+    """The :class:`~argparse_decorator.ArgParseDecorator` used to decorate command methods."""
 
     def __init__(self):
         self.stdout: TextIO = sys.stdout
