@@ -374,15 +374,18 @@ class ParserNode:
         :returns: dict
         """
 
-        if len(self._children) == 0:
-            result = {self.title: None}
-        else:
-            sub_dicts = {}
-            for child in self._children.values():
-                sub_dicts.update(child.get_command_dict())
-            result = {self.title: sub_dicts}
+        sub_dicts = {}
+        for child in self._children.values():
+            sub_dicts.update(child.get_command_dict())
 
-        return result
+        if self.title is None:  # root node has only sub commands but is no command itself
+            return sub_dicts
+
+        if sub_dicts:
+            # at least one sub command
+            return {self.title: sub_dicts}
+        else:
+            return {self.title: None}
 
     def no_command(self, **_) -> None:
         # do nothing
