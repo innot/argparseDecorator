@@ -25,8 +25,11 @@ class DemoCLI:
     @cli.command
     def exit(self) -> str:
         """Exit the CLI."""
-        print("CLI stopping")
-        return "exit"
+        confirm = input("Confirm you want to stop the CLI? ([y]es / [n]o): ")
+        if confirm.startswith('y'):
+            print("CLI stopping")
+            return "exit"
+        print("ok, not exiting")
 
     # simple command with a parameter
     @cli.command()

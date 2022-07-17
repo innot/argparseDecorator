@@ -142,4 +142,6 @@ Comprehensive documentation is available at https://argparseDecorator.readthedoc
 
 ## Version
 
-1.0.2 Added support for quoted input to the execute method 1.0.1 first release
+1.1.0 Added support for execute_async()
+1.0.2 Added support for quoted input to the execute method 
+1.0.1 first release

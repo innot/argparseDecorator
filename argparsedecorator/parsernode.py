@@ -380,7 +380,7 @@ class ParserNode:
         else:
             return False
 
-    def get_command_dict(self) -> Dict[str, str]:
+    def get_command_dict(self) -> Dict[str, Optional[Dict]]:
         """
         Get a dictionary with all commands in a form suitable for the
         `Python Prompt Toolkit <https://python-prompt-toolkit.readthedocs.io/en/master/>`_

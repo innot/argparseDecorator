@@ -15,6 +15,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath('../..'))
 sys.path.insert(0, os.path.abspath('../../argparsedecorator'))
+sys.path.insert(0, os.path.abspath('../../examples'))
 
 # -- Project information -----------------------------------------------------
 
@@ -23,7 +24,7 @@ copyright = '2022, Thomas Holland'
 author = 'Thomas Holland'
 
 # The full version, including alpha/beta/rc tags
-release = '1.0.2'
+release = '1.1.0'
 
 # -- General configuration ---------------------------------------------------
 
@@ -71,3 +72,17 @@ nitpick_ignore = [
     ('py:class', 'argparsedecorator.argument.T'),
     ('py:class', 'ParserNode'),  # autodoc does not like self refering types.
 ]
+nitpick_ignore_regex = [
+    ('py:class', r'prompt_toolkit.*'),  # no referencable API documentation.
+    ('py:class', r'asyncssh.*'),  # no referencable API documentation.
+
+]
+
+# If true, the current module name will be prepended to all description
+# unit titles (such as .. function::).
+add_module_names = False
+
+autodoc_typehints = "signature"
+autodoc_typehints_format = "short"
+
+

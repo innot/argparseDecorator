@@ -13,19 +13,20 @@
     to use the library.
 
     It contains the :meth:`.command` decorator to mark functions/methods as commands and the
-    :meth:`.execute`/:meth:`.execute_async` methods to execute a command line string.
+    :meth:`~ArgParseDecorator.execute`/:meth:`~ArgParseDecorator.execute_async` methods to
+    execute a command line string.
 
     Internally it generates a :class:`~.parsernode.ParserNode` element for each decorated
     function or method, defining the command and all associated data, and organises them in a tree
     of commands and sub-commands.
     The nodes have a reference to the decorated function which is used later to execute the command.
 
-    When :meth:`.execute` is called the :class:`~.parsernode.ParserNode` tree is converted to an
+    When :meth:`~ArgParseDecorator.execute` is called the :class:`~.parsernode.ParserNode` tree is converted to an
     :class:`argparse.ArgumentParser` object, which is then used to analyse the given command line.
     The result from the :external:meth:`argparse.ArgumentParser.parse_args`
     call is then converted to arguments of the decorated function and finally the function
     is called with the arguments and its (optional) return value is passed on to the caller of
-    :meth:`.execute`.
+    :meth:`~ArgParseDecorator.execute`.
 
     The only other public method of this Class is the :meth:`~ArgParseDecorator.add_argument`
     decorator, which can be used to pass arguments directly to the underlying :code:`ArgumentParser` in
@@ -131,7 +132,7 @@ class ArgParseDecorator:
         return self._rootnode
 
     @property
-    def command_dict(self) -> Dict[str, str]:
+    def command_dict(self) -> Dict[str, Optional[Dict]]:
         """
         Get a dictionary with all commands in a form suitable for the
         `Python Prompt Toolkit <https://python-prompt-toolkit.readthedocs.io/en/master/>`_

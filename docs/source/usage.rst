@@ -36,7 +36,7 @@ Next the argparseDecorator is imported. The best way is to
 
 .. code-block:: python
 
-    from argparseDecorator import *
+    from argparsedecorator import *
 
 to import all required types, including the annotation objects. Take a look at the
 `__init__.py <https://github.com/innot/argparseDecorator/blob/master/argparsedecorator/__init__.py>`_ file to
@@ -546,6 +546,43 @@ could come for example from a ssh connection.
 Internally the command line is parsed by the underlying :external:class:`argparse.ArgumentParser` instance and,
 if there are no errors, the command function (the first word of the command line) is called with all arguments.
 
+Execute Async Code
+++++++++++++++++++
+
+A typical use case for a command line interface is via a remote ssh connection. These are usually implemented
+with :external:mod:`asyncio` code. *ArgParseDecorator* supports this with the
+:meth:`~.ArgParseDecorator.execute_async` method which is functionally equivalent to
+:meth:`~.ArgParseDecorator.execute`, but is implemented as a coroutine which can be awaited.
+
+To make full use of this the command functions should be
+`coroutines <https://docs.python.org/3/library/asyncio-task.html#coroutines>`_ as well. After parsing the given
+command line input, :meth:`~.ArgParseDecorator.execute_async` will then
+`await <https://docs.python.org/3/reference/expressions.html#await>`_ the command coroutine.
+
+Here is a simple example for a sleep command that will pause the cli while other stuff could continue to run:
+
+.. code-block:: python
+
+    import asyncio
+
+    from argparsedecorator import *
+
+    cli = ArgParseDecorator()
+
+    @cli.command
+    async def sleep(n: float):
+        await asyncio.sleep(n)
+
+    async def runner():
+        await cli.execute_async("sleep 1.5")
+
+    if __name__ == "__main__":
+        asyncio.run(runner())
+
+Take a look at the `ssh_cli.py <https://github.com/innot/argparseDecorator/blob/master/examples/ssh_cli.py>`_ demo
+for a more complex module using *argparseDecorator* in an asyncio application.
+
+
 Using Quotes on the Command Line
 ++++++++++++++++++++++++++++++++
 
@@ -632,6 +669,10 @@ returning to the caller :py:`sys.stdout` and :py:`sys.stderr` are restored to th
 
     cli.execute("echo foobar", stdout=my_stdout)
     print(stdout.getvalue())    # prints 'foobar'
+
+.. note::
+
+    When running in an
 
 Redirecting Input
 +++++++++++++++++
