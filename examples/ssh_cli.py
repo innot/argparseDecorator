@@ -44,7 +44,7 @@ import asyncio
 import os
 import sys
 import time
-from typing import TextIO, Optional, Any, Dict, Awaitable
+from typing import TextIO, Optional, Any, Dict
 
 import asyncssh
 from prompt_toolkit import print_formatted_text, PromptSession, HTML
