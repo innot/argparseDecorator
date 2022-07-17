@@ -16,25 +16,21 @@ from argparsedecorator import *
 
 class DemoCLI:
     desc = "A small demo app for the ArgParseDecorator library"
-    parser = ArgParseDecorator(description=desc)
+    cli = ArgParseDecorator(description=desc)
 
     def __init__(self):
-        # This is important as the ArgParseDecorator is a class variable and does not
-        # know 'self'. We need to tell it what self is so it can be passed on to the
-        # decorated command functions.
-        self.parser.caller = self
         self.switch = False
 
     # simple command without par
-    @parser.command
+    @cli.command
     def exit(self) -> str:
         """Exit the CLI."""
         print("CLI stopping")
         return "exit"
 
     # simple command with a parameter
-    @parser.command()
-    def echo(self, text: ZeroOrMore[str]):
+    @cli.command()
+    def echo(self, text: ZeroOrMore[str]) -> None:
         """
         Print the given text.
         :param text: the text to be printed
@@ -43,8 +39,8 @@ class DemoCLI:
         print(txt)
 
     # multiple arguments
-    @parser.command()
-    def multi(self, text: ZeroOrMore[str], num: Union[Flag, int] = 2):
+    @cli.command()
+    def multi(self, text: ZeroOrMore[str], num: Union[Flag, int] = 2) -> None:
         """
         Print the given text multiple times.
         :param text: the text to be repeated
@@ -56,7 +52,7 @@ class DemoCLI:
             print(txt)
 
     # subcommands
-    @parser.command
+    @cli.command
     def switch(self):
         """
         Set the switch to on or off. If called without parameters then show the current switch position.
@@ -66,7 +62,7 @@ class DemoCLI:
         else:
             print("Switch is off")
 
-    @parser.command()
+    @cli.command()
     def switch_on(self, duration: Union[Option, int]):
         """
         Switch on
@@ -82,7 +78,7 @@ class DemoCLI:
             print(f"switching on")
             self.switch = True
 
-    @parser.command()
+    @cli.command()
     def switch_off(self):
         """
         switch off
@@ -91,9 +87,9 @@ class DemoCLI:
         self.switch = False
 
     # argument in decorator
-    @parser.command
-    @parser.add_argument("--foo", "-f", action="store_true", help="The foo flag")
-    @parser.add_argument("--bar", "-b", type=int, help="The bar value")
+    @cli.command
+    @cli.add_argument("--foo", "-f", action="store_true", help="The foo flag")
+    @cli.add_argument("--bar", "-b", type=int, help="The bar value (integer)")
     def test__arg(self, *args, **kwargs):
         """
         Test decorator argument.
@@ -102,17 +98,19 @@ class DemoCLI:
 
     def execute(self, commandline: str) -> object:
         # execute the command line, giving the static ArgParseDecorator a reference to this instance.
-        return self.parser.execute(commandline, base=self)
+        return self.cli.execute(commandline, base=self)
 
 
 if __name__ == "__main__":
     cli = DemoCLI()
-    while True:
-        cmd = input("# ")
+    running = True
+    while running:
+        cmd = input("\n# ")
         try:
             result = cli.execute(cmd)
             if result == "exit":
-                break
+                running = False
         except argparse.ArgumentError as exc:
-            # ignore invalid commands
+            print("Exception")
             pass
+    print("simple-cli.py has finished")

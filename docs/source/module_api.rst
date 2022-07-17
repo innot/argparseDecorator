@@ -16,7 +16,7 @@ argparsedecorator.argparse\_decorator
    :members:
    :undoc-members:
    :show-inheritance:
-   :exclude-members: help, get_arguments_from_namespace
+   :exclude-members: help, get_arguments_from_namespace, special_split
 
 
 argparsedecorator.annotations
