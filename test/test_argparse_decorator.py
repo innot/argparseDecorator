@@ -228,5 +228,23 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(["foo", "bar baz"], special_split('foo "bar baz"'))
         self.assertEqual(['cmd', "'foo bar'"], special_split('cmd "\'foo bar\'"'))
 
+    def test_suppress_option(self):
+        cli = ArgParseDecorator()
+
+        @cli.command
+        def test(debug: Option = False, foo: Option = False) -> bool:
+            """
+            Test suppressed arguments.
+            :param debug: SUPPRESS Turn on debugging
+            :param foo: unsuppressed help
+            """
+            return debug
+
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        cli.execute("help test", stdout=stdout, stderr=stderr)
+        helptext = stdout.getvalue()
+        self.assertFalse("debug" in helptext)
+
     if __name__ == '__main__':
         unittest.main()

@@ -45,7 +45,8 @@ from .parsernode import ParserNode
 
 def default_error_handler(exc: ArgumentError):
     """Default error handler that just prints the error message to stderr."""
-    sys.stderr.write(str(exc))
+    sys.stderr.write(str(exc) + "\n")
+    sys.stderr.flush()
 
 
 class ArgParseDecorator:
@@ -126,9 +127,20 @@ class ArgParseDecorator:
         
         This property is read only.
 
-        :return: The root node of the :code:`ParserNode` tree.
+        :return: The root node of the :class:`~.parsernode.ParserNode` tree.
         """
         return self._rootnode
+
+    @property
+    def command_dict(self) -> Dict[str, str]:
+        """
+        Get a dictionary with all commands in a form suitable for the
+        `Python Prompt Toolkit <https://python-prompt-toolkit.readthedocs.io/en/master/>`_
+        help function.
+
+        :returns: dict
+        """
+        return self.rootnode.get_command_dict()
 
     #    @doublewrap
     #    def command(self, f: Callable):
@@ -222,7 +234,7 @@ class ArgParseDecorator:
             Required if any command method has :code:`self`, not required otherwise.
         :param error_handler: callback function to handle errors when parsing the command line.
             The handler takes a single argument with a :code:`ArgumentError` exception.
-            The default is a function that just prints the error the :code:`stderr`.\n
+            The default is a function that just prints the error to :code:`stderr`.\n
             If set to :code:`None` parsing errors will result in an exception.
         :param stdout: Set to redirect the output of *ArgumentParser* (e.g. help texts) and the
             called command function to a different output, e.g a ssh stream.\n
