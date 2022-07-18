@@ -41,6 +41,7 @@
     *   :func:`print_error`, :func:`print_warn` and :func:`print_info` for color coded status messages.
         The colors used can be changes by modifying the supplied :data:`style` dictionary.
 
+
 """
 
 from __future__ import annotations
@@ -132,7 +133,28 @@ def print_info(text: str) -> None:
 
 
 class BaseCLI:
-    """"""
+    """
+    Basic Command Line Interface for use with the
+    `PromptToolkitSSHServer
+    <https://github.com/prompt-toolkit/python-prompt-toolkit/blob/master/src/prompt_toolkit/contrib/ssh/server.py>`_
+
+    It contains all the low-level stuff to integrate it with a PromptToolkit SSH session (in the :meth:`cmdloop` method)
+
+    To add more commands subclass this base CLI, as shown in the :class:`DemoCLI` class.
+
+    .. note::
+
+        Subclasses must use the *ArgParseDecorator* from *BaseCLI*. Do not create a seperate instance.
+        The *BaseCLI* instance is in the :data:`BaseCLI.cli` class variable and can be accessed like this:
+
+        .. code-block:: python
+
+            class MyCLI(BaseCLI):
+                cli = BaseCLI.cli
+                ...
+
+    The other class variables :data:`BaseCLI.intro` and :data:`BaseCLI.prompt` can be overwritten by subclasses.
+    """
 
     intro = "\nThis is a basic SSH CLI.\nType Ctrl-C to exit.\n"
     """Intro text displayed at the start of a new session. Override as required."""
@@ -147,17 +169,34 @@ class BaseCLI:
         self.stdout: TextIO = sys.stdout
         self.stdin: TextIO = sys.stdin
         self.promptsession = None
-        self.server: Optional[asyncssh.SSHAcceptor] = None
+        self._server: Optional[asyncssh.SSHAcceptor] = None
         self.completer: Optional[Completer] = None
 
     @property
     def command_dict(self) -> Dict[str, Optional[Dict]]:
         """
-
-        :return:
+        A dictionary with all supported commands suitable for the PromptToolkit
+        `Autocompleter <https://python-prompt-toolkit.readthedocs.io/en/master/pages/asking_for_input.html#autocompletion>`_
         """
         # make the command-dict accessible
         return self.cli.command_dict
+
+    @property
+    def sshserver(self) -> asyncssh.SSHAcceptor:
+        """
+        The SSH Server (actually asyncssh.SSHAcceptor) running this session.
+        Must be set externally and is used for the :code:`shutdown` command.
+        """
+        return self._server
+
+    @sshserver.setter
+    def sshserver(self, sshserver: asyncssh.SSHAcceptor):
+        self._server = sshserver
+
+    #
+
+    # The build in commands
+    #
 
     @cli.command
     def exit(self) -> str:
@@ -184,7 +223,7 @@ class BaseCLI:
         print_error(str(exc))
 
     # noinspection PyMethodMayBeStatic
-    async def start_prompt_session(self) -> PromptSession:
+    async def get_prompt_session(self) -> PromptSession:
         """
         Start a new prompt session.
 
@@ -202,7 +241,7 @@ class BaseCLI:
         """
         Display a prompt to the remote user and wait for his command.
 
-        The default implementation has only a comand name completer.
+        The default implementation uses only a comand name completer.
         Override to implement other, more advanced features.
 
         :return: The command entered by the user
@@ -212,7 +251,7 @@ class BaseCLI:
         # used by the prompt_toolkit
         if not self.completer:
             # create the command dict only once
-            all_commands = self.cli.command_dict
+            all_commands = self.command_dict
             self.completer = NestedCompleter.from_nested_dict(all_commands)
 
         # The prompt visual
@@ -263,33 +302,18 @@ class BaseCLI:
                             return
 
                         if result == "shutdown":
-                            if self.server:
+                            if self.sshserver:
                                 print_warn("SSH Server is shutting down")
-                                self.server.close()
+                                self.sshserver.close()
                                 return
                             print_warn("Could not shut down ssh server: server not set")
 
                 except KeyboardInterrupt:
-                    if self.ctrl_c_handler():
-                        print_warn("SSH connection closed by Ctrl-C")
-                        return
-                    # else ignore
+                    print_warn("SSH connection closed by Ctrl-C")
+                    return
                 except EOFError:
                     # Ctrl-D : ignore
                     pass
-
-    # noinspection PyMethodMayBeStatic
-    def ctrl_c_handler(self) -> bool:
-        """
-        Called when a CTRL-C (Keyboard Interrupt) is received.
-
-        If :code:`True` is returned the current session is closed.
-        If :code:`False` is returned the CTRL-C is ignored.
-
-        Override if required for more elaborate handling of CTRL-C.
-        :return: default :code:`True`
-        """
-        return True
 
 
 class DemoCLI(BaseCLI):
@@ -333,6 +357,7 @@ class DemoCLI(BaseCLI):
     async def input(self) -> None:
         """
         Ask for user input.
+        Demo for running a new prompt within commands.
         """
         value = await self.promptsession.prompt_async("Enter some random value: ")
         print_html(f"you have entered a value of {value}")
@@ -434,7 +459,7 @@ if __name__ == "__main__":
         # Get the ssh_server reference.
         # This is passed on to the CLI so that the CLI can shut down the server if required.
         ssh_server: asyncssh.SSHAcceptor = server.ssh_server
-        democli.server = ssh_server
+        democli.sshserver = ssh_server
 
         await asyncio.gather(ssh_task)  # run until the _ssh_server is closed
 
