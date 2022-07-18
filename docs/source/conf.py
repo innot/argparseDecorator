@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('../../examples'))
 # -- Project information -----------------------------------------------------
 
 project = 'argparseDecorator'
-copyright = '2022, Thomas Holland'
+project_copyright = '2022, Thomas Holland'
 author = 'Thomas Holland'
 
 # The full version, including alpha/beta/rc tags

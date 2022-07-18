@@ -12,9 +12,10 @@
     It is the main Class for the *argparseDecorator* library and usually the only one needed
     to use the library.
 
-    It contains the :meth:`.command` decorator to mark functions/methods as commands and the
-    :meth:`~ArgParseDecorator.execute`/:meth:`~ArgParseDecorator.execute_async` methods to
-    execute a command line string.
+    It contains the :meth:`~.argparse_decorator.ArgParseDecorator.command` decorator to mark
+    functions/methods as commands and the
+    :meth:`~.argparse_decorator.ArgParseDecorator.execute`/:meth:`~.argparse_decorator.ArgParseDecorator.execute_async`
+    methods to execute a command line string.
 
     Internally it generates a :class:`~.parsernode.ParserNode` element for each decorated
     function or method, defining the command and all associated data, and organises them in a tree
@@ -169,7 +170,7 @@ class ArgParseDecorator:
             return func
 
         # if command is used without (), then args is the decorated function and
-        # we need to call the decorator ourself.
+        # we need to call the decorator ourselves.
         # otherwise, i.e. command(...) is used, the args contain a tuble of all arguments
         # and we need to return the decorator function to be called later.
         if len(args) == 1 and len(kwargs) == 0 and callable(args[0]):
@@ -230,7 +231,7 @@ class ArgParseDecorator:
             implemented as a function (unbound) or an inner function (already bound).
 
         :param commandline: A string with a command and arguments (e.g. :code:`"command --flag arg"`)
-        :param base: an object that is passed to commands as the :code:`self` argument.
+        :param base: an object that is passed to the command function as the :code:`self` argument.
             Required if any command method has :code:`self`, not required otherwise.
         :param error_handler: callback function to handle errors when parsing the command line.
             The handler takes a single argument with a :code:`ArgumentError` exception.
@@ -311,7 +312,7 @@ class ArgParseDecorator:
             implemented as a function (unbound) or an inner function (already bound).
 
         :param commandline: A string with a command and arguments (e.g. :code:`"command --flag arg"`)
-        :param base: an object that is passed to commands as the :code:`self` argument.
+        :param base: an object that is passed to the command function as the :code:`self` argument.
             Required if any command method has :code:`self`, not required otherwise.
         :param error_handler: callback function to handle errors when parsing the command line.
             The handler takes a single argument with a :code:`ArgumentError` exception.
@@ -367,7 +368,7 @@ class ArgParseDecorator:
                 args.insert(0, base)
 
             # handle both coroutines and normal functions
-            # so async an non-async commands can be mixed.
+            # so async and non-async commands can be mixed.
             if node.coroutine:
                 result = await func(*args, **kwargs)
             else:

@@ -16,13 +16,13 @@ class NonExitingArgumentParser(argparse.ArgumentParser):
     """
     Slightly modified version of the default
     `ArgumentParser <https://docs.python.org/3/library/argparse.html#argumentparser-objects>`_
-    to make it more suitable for a self contained command line interpreter.
+    to make it more suitable for a self-contained command line interpreter.
 
     It overrides the :meth:`exit` and :meth:`error` methods and removes the *sys.exit* calls,
     instead raising an ``ArgumentError`` upon errors.
 
     (Pyhton 3.9+) It also sets the *exit_on_error* flag to a default of *False* so that
-    internal argument errors are not not caught and routed through :meth:`error` but passed on
+    internal argument errors are not caught and routed through :meth:`error` but passed on
     to the caller directly.
     """
 

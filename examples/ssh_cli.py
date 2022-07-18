@@ -12,6 +12,11 @@
     the `Python prompt toolit <https://python-prompt-toolkit.readthedocs.io>`_ to provide a rich terminal interface with
     code completion, colours and more.
 
+    .. note::
+
+        The ssh server is very basic and will accept any client connection.
+        Use either in a closed environment (behind firewall) or add authentification as required.
+
     This module has three main classes:
 
     #.  :class:`BaseCLI` contains all the low level code linking an
@@ -44,6 +49,7 @@ import asyncio
 import os
 import sys
 import time
+from asyncio import Event
 from typing import TextIO, Optional, Any, Dict
 
 import asyncssh
@@ -184,7 +190,7 @@ class BaseCLI:
 
         Called from :meth:`cmdloop` for each new session.
 
-        By default it will return a simple PromptSession without any argument.
+        By default, it will return a simple PromptSession without any argument.
         Override to customize the prompt session.
 
         :return: a new PromptSession object
@@ -343,12 +349,10 @@ class SshCLIServer:
         A new key will be generated if the keyfile does not exist.
     """
 
-    def __init__(self,
-                 cli: BaseCLI,
-                 port: int = 8222,
-                 keyfile: str = None):
+    def __init__(self, cli: BaseCLI, port: int = 8222, keyfile: str = None):
         self.cli = cli
         self.port = port
+        self.is_running: Event = asyncio.Event()
 
         if keyfile:
             self.host_keyfile = keyfile
@@ -356,19 +360,14 @@ class SshCLIServer:
             homedir = os.path.expanduser('~')
             self.host_keyfile = os.path.join(homedir, '.ssh_cli_key')
 
-    async def start(self) -> asyncssh.SSHAcceptor:
-        """
-        Start the SSH server.
+        self._ssh_server = None
 
-        :return: Reference to the running server.
-        """
-        self.ssh_server: asyncssh.SSHAcceptor = await asyncssh.create_server(
-            lambda: PromptToolkitSSHServer(self.cli.cmdloop),
-            "",
-            self.port,
-            server_host_keys=self._get_host_key(),
-        )
-        return self.ssh_server
+    @property
+    def ssh_server(self) -> asyncssh.SSHAcceptor:
+        return self._ssh_server
+
+    async def close(self):
+        self._ssh_server.close()
 
     def _get_host_key(self) -> asyncssh.SSHKey:
         """
@@ -393,6 +392,31 @@ class SshCLIServer:
 
         return key
 
+    async def run_server(self) -> None:
+        """
+        Start the SSH server and run until the server is shut down.
+
+        :return: Reference to the running server.
+        """
+
+        # add something like this to add client authentification:
+        # options.authorized_client_keys = ...
+        # An alternative would be to subclass PromptToolkitSSHServer and implement the begin_auth() method.
+
+        self._ssh_server: asyncssh.SSHAcceptor = await asyncssh.create_server(
+            lambda: PromptToolkitSSHServer(self.cli.cmdloop),
+            "",
+            self.port,
+            server_host_keys=self._get_host_key(),
+        )
+
+        # at this point the server is running. Inform interessted listeners.
+        self.is_running.set()
+
+        await self._ssh_server.wait_closed()
+
+        self.is_running.clear()
+
 
 if __name__ == "__main__":
     democli = DemoCLI()
@@ -400,26 +424,19 @@ if __name__ == "__main__":
 
 
     async def start_server():
-        ssh_task = asyncio.create_task(server.start())
+        ssh_task = asyncio.create_task(server.run_server())
 
-        # The ssh_task will start the actual server in the background and then finish quickly.
-        # Wait for it to finish before continuing
-        try:
-            await asyncio.wait_for(ssh_task, 10)
-        except TimeoutError:
-            print("SSH Server could not be started")
-            sys.exit(-1)
+        # wait until the server has started.
+        await server.is_running.wait()
 
         print("SSH Server started on port 8301")
 
         # Get the ssh_server reference.
-        # This is used
-        # a) to wait for it to close to cleanly shut down this programm
-        # b) for the cli to be able to shut down the server (via the 'shutdown' command supplied by default)
+        # This is passed on to the CLI so that the CLI can shut down the server if required.
         ssh_server: asyncssh.SSHAcceptor = server.ssh_server
         democli.server = ssh_server
 
-        await asyncio.gather(ssh_server.wait_closed())  # run until the ssh_server is closed
+        await asyncio.gather(ssh_task)  # run until the _ssh_server is closed
 
         print("SSH Server terminated.")
 

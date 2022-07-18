@@ -58,7 +58,7 @@ class Option:
     """
     Marks the argument as an Option.
 
-    A Option starts with a double hyphen :code:`--`.
+    An Option starts with a double hyphen :code:`--`.
 
     If the Option does not require any arguments (just present or not present) add a :code:`= False`
     as its default or add a :class:`StoreTrueAction` annotation.
