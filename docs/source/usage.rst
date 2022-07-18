@@ -551,12 +551,12 @@ Execute Async Code
 
 A typical use case for a command line interface is via a remote ssh connection. These are usually implemented
 with :external:mod:`asyncio` code. *ArgParseDecorator* supports this with the
-:meth:`~.ArgParseDecorator.execute_async` method which is functionally equivalent to
-:meth:`~.ArgParseDecorator.execute`, but is implemented as a coroutine which can be awaited.
+:meth:`~.argparse_decorator.ArgParseDecorator.execute_async` method which is functionally equivalent to
+:meth:`~.argparse_decorator.ArgParseDecorator.execute`, but is implemented as a coroutine which can be awaited.
 
 To make full use of this the command functions should be
 `coroutines <https://docs.python.org/3/library/asyncio-task.html#coroutines>`_ as well. After parsing the given
-command line input, :meth:`~.ArgParseDecorator.execute_async` will then
+command line input, :meth:`~.argparse_decorator.ArgParseDecorator.execute_async` will then
 `await <https://docs.python.org/3/reference/expressions.html#await>`_ the command coroutine.
 
 Here is a simple example for a sleep command that will pause the cli while other stuff could continue to run:
