@@ -35,16 +35,17 @@ class ParserNode:
     Single Node of the parser tree.
 
     A tree of nodes is used to represent the complete command hierarchy.
-    The root node is generated automatically by the :class:`.ArgParseDecorator`.
+    The root node is generated automatically by the :class:`~.argparse_decorator.ArgParseDecorator`.
 
-    The children are added by successive calls from the :meth:`.ArgParseDecorator.command` overlay operator.
+    The children are added by successive calls from the :meth:`~.argparse_decorator.ArgParseDecorator.command`
+    decorator method.
     Once the tree is finished, the actual :external:class:`argparse.ArgumentParser` representing all commands and
     their arguments of this node can be accessed by the :meth:`argumentparser` property.
 
     Each *ParserNode* has a :meth:`root` property to get the root node.
 
     :param title: The name of the command, :code:`None` for the root node
-    :param parent:  The parent node of the this node. Defaults to :code:'None' for a root node.
+    :param parent:  The parent node for this node. Defaults to :code:'None' for a root node.
     :param kwargs:  Other arguments for :external:class:`argparse.ArgumentParser` (for the root node) or
                     for :external:meth:`argparse.ArgumentParser.add_subparsers` (all other nodes)
     """
@@ -123,7 +124,7 @@ class ParserNode:
         """
         The class to use for building the parser.
 
-        Default is the :class:`.NonExitingArgumentParser` class, a subclass of
+        Default is the :class:`~.nonexiting_argumentparser.NonExitingArgumentParser` class, a subclass of
         :external:class:`argparse.ArgumentParser` that does not call sys.exit().
         It can be changed to subclass of ArgumentParser.
         Only relevant for the root Node. If changed on any other child node the class will be
@@ -393,7 +394,7 @@ class ParserNode:
         for child in self._children.values():
             sub_dicts.update(child.get_command_dict())
 
-        if self.title is None:  # root node has only sub commands but is no command itself
+        if self.title is None:  # root node has only sub-commands but is not a command itself
             return sub_dicts
 
         if sub_dicts:
@@ -443,14 +444,16 @@ class ParserNode:
                 # nothing is returned from the parse_arg() call and the default of 'False'
                 # is assigned to the argument.
                 arg.action = "store_true"  # -f: Flag = False
+                arg.type = None     # store_true implies bool
             if arg.optional and default is True:
                 arg.action = "store_false"  # -f: Flag = True
+                arg.type = None  # store_true implies bool
             if arg.action == "store_const" or arg.action == "append_const":
                 arg.const = default  # -f: Flag | AppendConst = 42
             else:
                 arg.default = default
 
-            # check that the default for a choices argument is actually one of the choices.
+            # check that the default for a 'choices' argument is actually one of the choices.
             if arg.choices and arg.default:
                 if arg.default not in arg.choices:
                     raise ValueError(f"Default value {arg.default} must be in list of choices.")
@@ -569,7 +572,7 @@ class ParserNode:
         elif is_type_key(CountAction, part):
             arg.action = "count"
             if arg.type:
-                # the count action implies a int type and does not like explicit type declarations
+                # the count action implies an int type and does not like explicit type declarations
                 arg.type = None
         elif is_type_key(ExtendAction, part):
             arg.action = "extend"
@@ -780,7 +783,7 @@ def get_bracket_content(string: str) -> str:
     For example :code:`foo[bar[baz]]` will return :code:`bar[baz]`
 
     :param string: any string
-    :return: bracket content or empty string if there were no brackets or they were empty
+    :return: bracket content or empty string if there were no brackets or if they were empty.
     """
     first = string.find('[')
     last = string.rfind(']')

@@ -232,13 +232,13 @@ class MyTestCase(unittest.TestCase):
         cli = ArgParseDecorator()
 
         @cli.command
-        def test(debug: Option = False, foo: Option = False) -> bool:
+        def test(debug: Option | bool = False, foo: Option = False):
             """
             Test suppressed arguments.
             :param debug: SUPPRESS Turn on debugging
             :param foo: unsuppressed help
             """
-            return debug
+            return debug, foo
 
         stdout = io.StringIO()
         stderr = io.StringIO()

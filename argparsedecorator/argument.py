@@ -141,7 +141,14 @@ class Argument:
         return self._type
 
     @type.setter
-    def type(self, argtype: Union[str, Type, Callable]) -> None:
+    def type(self, argtype: Union[str, Type, Callable, None]) -> None:
+
+        if not argtype:
+            # this is special case. When using implied 'store_true' or 'store_false' then the
+            # parsernode will need to remove a previously set type (should be 'bool', but not checked)
+            # by setting the type to None.
+            self._type = None
+            return
 
         if isinstance(argtype, str):
             argtype = argtype.replace("builtins.",
