@@ -9,7 +9,7 @@ the argparseDecorator.
 
 ### 2. simple_asyncio_demo.py
 
-A very small sample to test using argparseDecorator in am asyncio context.
+A very small sample to test using argparseDecorator in an asyncio context.
 
 ### 3. ssh_cli.py
 
