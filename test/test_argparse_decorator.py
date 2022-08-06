@@ -222,11 +222,24 @@ class MyTestCase(unittest.TestCase):
         parser.execute("inp", stdin=stdin, stdout=stdout)
         self.assertTrue(stdout.getvalue().startswith("foobar"))
 
-    def test_special_split(self):
-        self.assertEqual(["foo", "bar", "baz"], special_split("foo bar baz"))
-        self.assertEqual(["foo", "bar", "baz"], special_split("  foo  bar  baz  "))
-        self.assertEqual(["foo", "bar baz"], special_split('foo "bar baz"'))
-        self.assertEqual(['cmd', "'foo bar'"], special_split('cmd "\'foo bar\'"'))
+    def test_split_commandline(self):
+        # string cmdline
+        self.assertEqual(["foo", "bar", "baz"], split_commandline("foo bar baz"))
+        self.assertEqual(["foo", "bar", "baz"], split_commandline("  foo  bar  baz  "))
+        self.assertEqual(["foo", "bar baz"], split_commandline('foo "bar baz"'))
+        self.assertEqual(['cmd', "'foo bar'"], split_commandline('cmd "\'foo bar\'"'))
+        # check correct whitespace split
+        self.assertEqual(["foo", "-f", "--v"], split_commandline("foo -f --v"))
+
+        # list commandline
+        self.assertEqual(["foo", "bar", "baz"], split_commandline(["foo", "bar", "baz"]))
+        self.assertEqual(["foo", "bar baz"], split_commandline(["foo", "bar baz"]))
+        self.assertEqual(["foo", "bar baz"], split_commandline([str(Path("some/path/foo")), "bar baz"]))
+        self.assertEqual(["foo", "'bar baz'"], split_commandline([str(Path("some/path/foo.py")), "\'bar baz\'"]))
+
+        # iterator commandline
+        lexer = shlex("foo bar baz")
+        self.assertEqual(["foo", "bar", "baz"], split_commandline(lexer))
 
     def test_suppress_option(self):
         cli = ArgParseDecorator()
@@ -245,6 +258,22 @@ class MyTestCase(unittest.TestCase):
         cli.execute("help test", stdout=stdout, stderr=stderr)
         helptext = stdout.getvalue()
         self.assertFalse("debug" in helptext)
+
+    def test_argparse_help(self):
+        cli = ArgParseDecorator(helpoption="-h")
+
+        @cli.command
+        def test(foobar):
+            """
+            Test -h help argument.
+            :param foobar: some value
+            """
+            return foobar
+
+        stdout = io.StringIO()
+        cli.execute("test -h", stdout=stdout)
+        helptext = stdout.getvalue()
+        self.assertTrue("foobar" in helptext)
 
 
 class TestAsync(unittest.IsolatedAsyncioTestCase):

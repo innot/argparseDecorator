@@ -128,7 +128,7 @@ options:
 
 ## Installation
 
-{TODO} If the requirements are met, then a simple
+If the requirements are met, then a simple
 
 ```bash
  $ pip import argparseDecorator

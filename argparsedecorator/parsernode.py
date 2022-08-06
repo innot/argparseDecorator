@@ -57,6 +57,7 @@ class ParserNode:
 
         super().__init__()
 
+        self._prog: str = ""  # Name of the programm. Usually empty for CLIs.
         self._title: Optional[str] = title
         self._parent: ParserNode = parent
         self._kwargs: dict = kwargs
@@ -305,12 +306,14 @@ class ParserNode:
         if not self._parent:
             # root node is special. It generates the ArgumentParser starting point
             parser_cls = self.argparser_class
-            self._parser = parser_cls(prog="",  # Must be empty to avoid default
+            self._parser = parser_cls(prog=self._prog,
                                       description=self.description,
                                       add_help=self._add_help)
         else:
-            self._parser = parentparser.add_parser(name=self.title, description=self.description,
-                                                   add_help=self.add_help)
+            self._parser = parentparser.add_parser(name=self.title,
+                                                   help=self.description,
+                                                   description=self.description,
+                                                   add_help=self.root.add_help)
 
         # Add arguments
         if self.arguments:
@@ -444,7 +447,7 @@ class ParserNode:
                 # nothing is returned from the parse_arg() call and the default of 'False'
                 # is assigned to the argument.
                 arg.action = "store_true"  # -f: Flag = False
-                arg.type = None     # store_true implies bool
+                arg.type = None  # store_true implies bool
             if arg.optional and default is True:
                 arg.action = "store_false"  # -f: Flag = True
                 arg.type = None  # store_true implies bool

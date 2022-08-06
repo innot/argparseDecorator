@@ -34,10 +34,11 @@
     case some special functionality of the argparse library is needed.
 """
 
-import re
 import sys
 from argparse import ArgumentParser, Namespace, ArgumentError
-from typing import List, Union, Callable, Any, Type, Optional, Dict, Tuple, TextIO
+from pathlib import Path
+from shlex import shlex
+from typing import List, Union, Callable, Any, Type, Optional, Dict, Tuple, TextIO, Iterator
 
 from .annotations import ZeroOrMore  # for the builtin help command
 from .argument import Argument
@@ -101,6 +102,10 @@ class ArgParseDecorator:
             # add the help command as a node to the tree
             node: ParserNode = self._rootnode.get_node("help")
             node.function = self.help
+            self._rootnode.add_help = False
+
+        if helpoption == "-h":
+            self._rootnode.add_help = True
 
         if helpoption == "None":
             self._rootnode.add_help = False
@@ -169,9 +174,9 @@ class ArgParseDecorator:
             node.function = func
             return func
 
-        # if command is used without (), then args is the decorated function and
-        # we need to call the decorator ourselves.
-        # otherwise, i.e. command(...) is used, the args contain a tuble of all arguments
+        # if command is used without (), then args is the decorated function,
+        # and we need to call the decorator ourselves.
+        # otherwise, i.e. command(...) is used, the args contain a tuble of all arguments,
         # and we need to return the decorator function to be called later.
         if len(args) == 1 and len(kwargs) == 0 and callable(args[0]):
             return decorator(args[0])
@@ -216,7 +221,7 @@ class ArgParseDecorator:
 
         return decorator
 
-    def execute(self, commandline: str, base: Optional = None,
+    def execute(self, commandline: Union[str, List[str], shlex], base: Optional = None,
                 error_handler=default_error_handler,
                 stdout: TextIO = None,
                 stderr: TextIO = None,
@@ -224,13 +229,25 @@ class ArgParseDecorator:
         """
         Parse a command line and execute it.
 
+        The command line can be a single string which will be split into command and argument tokens via
+        the :external:class:`shlex.shlex` lexer with default settings. If the default settings are not
+        appropriate then this method will also accept a customized `shlex` object as :code:`commandline` -
+        or any other :external:class:`~typing.Iterator` (which :code:`shlex` is)
+
+        Alternatively :code:`commandline` can also be a :external:class:`list` of strings with the command name
+        as the first item followed by subcommands and arguments. This can be used to process the command
+        line arguments when called as a Python script by passing :external:data:`sys.argv` as the
+        :code:`commandline`
+
         .. note::
 
             The :code:`base` must be supplied if the method implementing the command is a bound method,
             i.e. having :code:`self` as the first argument. It is not required if the command is
             implemented as a function (unbound) or an inner function (already bound).
 
-        :param commandline: A string with a command and arguments (e.g. :code:`"command --flag arg"`)
+        :param commandline: Either a string with a command and arguments (e.g. :code:`"command --flag arg"`),\n
+            or a list of string elements (e.g. from :code:`sys.argv`),\n
+            or any :external:class:`~typing.Iterator` supplying a list of tokens.
         :param base: an object that is passed to the command function as the :code:`self` argument.
             Required if any command method has :code:`self`, not required otherwise.
         :param error_handler: callback function to handle errors when parsing the command line.
@@ -238,13 +255,13 @@ class ArgParseDecorator:
             The default is a function that just prints the error to :code:`stderr`.\n
             If set to :code:`None` parsing errors will result in an exception.
         :param stdout: Set to redirect the output of *ArgumentParser* (e.g. help texts) and the
-            called command function to a different output, e.g a ssh stream.\n
+            called command function to a different output, e.g. an ssh stream.\n
             Optional, default is :code:`sys.stdout`
         :param stderr: Set to redirect error messages from the *ArgumentParser* and the
-            called command function to a different output, e.g a ssh stream.\n
+            called command function to a different output, e.g. an ssh stream.\n
             Optional, default is :code:`sys.stderr`
         :param stdin: Set to redirect the input of the called command function to
-            an input other than the current terminal, e.g a ssh stream.\n
+            an input other than the current terminal, e.g. an ssh stream.\n
             Optional, default is :code:`sys.stdin`
 
         :return: anything the command function/method returns.
@@ -253,6 +270,8 @@ class ArgParseDecorator:
         :raises ArgumentError: if the given command line contains errors and the :code:`error_handler`
             is set to :code:`None`.
         """
+        arg_list = split_commandline(commandline)
+
         old_stdin = sys.stdin
         old_stdout = sys.stdout
         old_stderr = sys.stderr
@@ -268,7 +287,7 @@ class ArgParseDecorator:
                 sys.stderr = stderr
 
             argparser: ArgumentParser = self.argumentparser
-            named_args = argparser.parse_args(special_split(commandline))
+            named_args = argparser.parse_args(arg_list)
             func: Callable = named_args.func
             node: ParserNode = named_args.node
             args, kwargs = get_arguments_from_namespace(named_args, node)
@@ -297,13 +316,23 @@ class ArgParseDecorator:
 
         return result
 
-    async def execute_async(self, commandline: str, base: Optional = None,
+    async def execute_async(self, commandline: Union[str, Iterator[str], List[str]], base: Optional = None,
                             error_handler=default_error_handler,
                             stdout: TextIO = None,
                             stderr: TextIO = None,
                             stdin: TextIO = None) -> Optional:
         """
-        Parse a command line and execute it in a async coroutine.
+        Parse a command line and execute it in as an async coroutine.
+
+        The command line can be a single string which will be split into command and argument tokens via
+        the :external:class:`shlex.shlex` lexer with default settings. If the default settings are not
+        appropriate then this method will also accept a customized `shlex` object as :code:`commandline` -
+        or any other :external:class:`~typing.Iterator` (which :code:`shlex` is)
+
+        Alternatively :code:`commandline` can also be a :external:class:`list` of strings with the command name
+        as the first item followed by subcommands and arguments. This can be used to process the command
+        line arguments when called as a Python script by passing :external:data:`sys.argv` as the
+        :code:`commandline`
 
         .. note::
 
@@ -311,7 +340,9 @@ class ArgParseDecorator:
             i.e. having :code:`self` as the first argument. It is not required if the command is
             implemented as a function (unbound) or an inner function (already bound).
 
-        :param commandline: A string with a command and arguments (e.g. :code:`"command --flag arg"`)
+        :param commandline: Either a string with a command and arguments (e.g. :code:`"command --flag arg"`),\n
+            or a list of string elements (e.g. from :code:`sys.argv`),\n
+            or any :external:class:`~typing.Iterator` supplying a list of tokens.
         :param base: an object that is passed to the command function as the :code:`self` argument.
             Required if any command method has :code:`self`, not required otherwise.
         :param error_handler: callback function to handle errors when parsing the command line.
@@ -319,13 +350,13 @@ class ArgParseDecorator:
             The default is a function that just prints the error to :code:`stderr`.\n
             If set to :code:`None` parsing errors will result in an exception.
         :param stdout: Set to redirect the output of *ArgumentParser* (e.g. help texts) and the
-            called command function to a different output, e.g a ssh stream.\n
+            called command function to a different output, e.g. an ssh stream.\n
             Optional, default is :code:`sys.stdout`
         :param stderr: Set to redirect error messages from the *ArgumentParser* and the
-            called command function to a different output, e.g a ssh stream.\n
+            called command function to a different output, e.g. an ssh stream.\n
             Optional, default is :code:`sys.stderr`
         :param stdin: Set to redirect the input of the called command function to
-            an input other than the current terminal, e.g a ssh stream.\n
+            an input other than the current terminal, e.g. an ssh stream.\n
             Optional, default is :code:`sys.stdin`
 
         :return: anything the command function/method returns.
@@ -337,6 +368,7 @@ class ArgParseDecorator:
 
         # there is almost a complete duplicate of execute(), but I have found no elegant way
         # to factor out the common parts.
+        arg_list = split_commandline(commandline)
 
         old_stdin = sys.stdin
         old_stdout = sys.stdout
@@ -353,7 +385,7 @@ class ArgParseDecorator:
                 sys.stderr = stderr
 
             argparser: ArgumentParser = self.argumentparser
-            named_args = argparser.parse_args(special_split(commandline))
+            named_args = argparser.parse_args(arg_list)
             func: Callable = named_args.func
             node: ParserNode = named_args.node
             args, kwargs = get_arguments_from_namespace(named_args, node)
@@ -442,9 +474,16 @@ def get_arguments_from_namespace(
     return args, kwargs
 
 
-def special_split(string: str) -> List[str]:
-    """
-    Split the given string at whitespaces, but keep any content in quotes intact.
-    """
+def split_commandline(cmdline: Union[str, List[str], Iterator[str]]) -> List[str]:
+    if isinstance(cmdline, list) or isinstance(cmdline, Iterator):
+        result_list = list(cmdline)
+        # argv first item (command name) may be a full path. Reduce to just command name
+        result_list[0] = Path(result_list[0]).stem
+    elif isinstance(cmdline, str):
+        lexer = shlex(cmdline, posix=True)
+        lexer.whitespace_split = True   # otherwise it would split '-' into seperate tokens
+        result_list = list(lexer)
+    else:
+        raise TypeError("Cmdline argument must be a string, a list of strings or a Iterator object.")
 
-    return [t.strip('"') for t in re.findall(r'[^\s"]+|"[^"]*"', string)]
+    return result_list

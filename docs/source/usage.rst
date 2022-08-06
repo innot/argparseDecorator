@@ -543,8 +543,10 @@ could come for example from a ssh connection.
     cli.execute(cmdline)
 
 
-Internally the command line is parsed by the underlying :external:class:`argparse.ArgumentParser` instance and,
-if there are no errors, the command function (the first word of the command line) is called with all arguments.
+Internally the command line is first split into separate tokens using the :external:class:`~shlex.shlex` lexer
+library (in POSIX mode). These tokens are then passed to the internal
+:external:class:`argparse.ArgumentParser` instance and, if there are no errors, the command function
+(the first word of the command line) is called with all arguments.
 
 Execute Async Code
 ++++++++++++++++++
@@ -582,14 +584,77 @@ Here is a simple example for a sleep command that will pause the cli while other
 Take a look at the `ssh_cli.py <https://github.com/innot/argparseDecorator/blob/master/examples/ssh_cli.py>`_ demo
 for a more complex module using *argparseDecorator* in an asyncio application.
 
+Using sys.argv as Input
++++++++++++++++++++++++
+
+Instead of a single string the *execute* and *execute_async* methods can also take a list of strings (or any
+string :external:class:`~collections.abc.Iterator`), where the first item is the name of the command and all following items
+are the arguments.
+
+This is useful if you - instead of implementing a full CLI - just want to parse the command line arguments of a Python
+script. A Python script has all its arguments in the system parameter :external:data:`sys.argv` with
+:code:`sys.argv[0]` containing the script name. This can be passed directly to *execute*/*execute_async* as the
+commandline argument. For example, the following script will implement a :code:`--verbose` argument for the script:
+
+.. code-block:: python
+
+    # testverbose.py
+
+    import sys
+    from argparsedecorator import *
+
+    # use helpoption='-h' as the default "help" option does not
+    # work when parsing script arguments.
+    argparser = ArgParseDecorator(helpoption="-h")
+
+    @argparser.command
+    def testverbose(v: Flag = False):  # must be the same name as the script.
+        """
+        Sample to show script argument parsing.
+        :param v: switch on verbose mode.
+        :alias v: --verbose
+        """
+        if v:
+            print("chatty mode activated")
+
+
+    if __name__ == "__main__":
+        argparser.execute(sys.argv)
+
+
+.. code-block:: sh
+    :emphasize-lines: 1,4
+
+    # python testverbose.py --verbose
+    chatty mode activated
+
+    # python testverbose.py --help
+    usage:  testverbose [-h] [-v]
+
+    Sample to show script argument parsing.
+
+    options:
+      -h, --help     show this help message and exit
+      -v, --verbose  switch on verbose mode.
+
+    Process finished with exit code 0
+
+
+Using the name of the script as the name of the command function allows for the same script
+to behave differently depending on the name of the script, e.g. by using differently named links to the same
+Python script.
+
 
 Using Quotes on the Command Line
 ++++++++++++++++++++++++++++++++
 
-The *execute* method needs to first split the command line into a list of strings containing the
-command itself and all seperate arguments to make it usable for the :external:meth:`~argparse.ArgumentParser.parse_args`
-method. In doing so it will treat any text in double quotes ``"`` as a single entry and pass the string in quotes but
-without the quotes to *parse_args()*.
+*ArgParseDecorator* uses the :external:class:`~shlex.shlex` lexer library (in POSIX mode) to split a given
+commandline into seperate tokens for the command and the arguments. Arguments containing spaces can be encapsulated
+in single or double quotemarks to prevent splitting them into seperate arguments.
+
+However these quotemarks will be removed by *shlex*. If an argument requires quotes to be preserved they need to
+be escaped by a backslash character :code:`\\`. If a backslash character is part of an argument it has to be escaped
+as well like :code:`\\\\`
 
 For example
 
@@ -597,12 +662,15 @@ For example
 
     cli.execute('cmd foo bar')          # -> Split into ['cmd', 'foo', 'bar']
     cli.execute('cmd "foo bar"')        # -> Split into ['cmd', 'foo bar']
-    cli.execute('cmd "\'foo bar\'"')    # -> Split into ['cmd', "'foo bar'"]
+    cli.execute('cmd "a \'quote\' "')   # -> Split into ['cmd', "a 'quote' "]
+    cli.execute('cmd path\\to\\file')   # -> Split into ['cmd', 'path\to\file']
 
-.. note::
+If this behaviour is not desired, e.g. when working with lots of Windows paths, then the caller can implement its
+own lexer (e.g. *shlex* in the default non-POSIX mode) and pass its result to the *execute* method
+(note: *shlex* implements the Iterator methods and can be passed to *execute* directly).
 
-    There is currently no way to pass an argument value **including** the quotes from the commandline input
-    to the command. However single quotes ``'`` can be used inside a quoted argument.
+See `shlex parsing rules <https://docs.python.org/3/library/shlex.html#parsing-rules>`_ for more details on how
+*shlex* works in the different modes.
 
 Error Handling
 ++++++++++++++
