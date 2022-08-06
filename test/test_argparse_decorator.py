@@ -271,7 +271,7 @@ class MyTestCase(unittest.TestCase):
             return foobar
 
         stdout = io.StringIO()
-        cli.execute("test -h", stdout=stdout)
+        cli.execute("test -h foobar", stdout=stdout)
         helptext = stdout.getvalue()
         self.assertTrue("foobar" in helptext)
 
