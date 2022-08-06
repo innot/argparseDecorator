@@ -44,7 +44,7 @@ Here is an example for using ArgParseDecorator to create a hypothetical 'ls' com
 
 ```python
 
-from __future__ import annotations  # required for Python 3.7 - 3.9. Not required for Python 3.10+
+from __future__ import annotations  # required for Python 3.8 and 3.9. Not required for Python 3.10+
 from argparsedecorator import *  # import the ArgParseDecorator API
 
 cli = ArgParseDecorator()
@@ -121,7 +121,7 @@ options:
 * Works best with Python 3.10 or higher
     - the new type unions with '|' make the annotations much more readable
 
-* Works with Python 3.7+
+* Works with Python 3.8+
     - some features require the use of 'from \_\_future\_\_ import annotations'
 
 * No other dependencies
