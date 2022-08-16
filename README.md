@@ -1,7 +1,7 @@
 [![License](https://img.shields.io/github/license/innot/ArgParseDecorator)](https://github.com/innot/argparseDecorator/blob/master/LICENSE.txt)
 ![Python Version](https://img.shields.io/pypi/pyversions/ArgParseDecorator)
 [![pypi](https://img.shields.io/pypi/v/ArgParseDecorator.svg)](https://pypi.org/project/ArgParseDecorator)
-[![RTD](https://readthedocs.org/projects/ArgParseDecorator/badge/?version=latest)](https://argparsedecorator.readthedocs.io)
+[![Documentation Status](https://readthedocs.org/projects/argparsedecorator/badge/?version=latest)](https://argparsedecorator.readthedocs.io/en/latest/?badge=latest)
 [![Build](https://github.com/innot/argparseDecorator/actions/workflows/ci.yaml/badge.svg)](https://github.com/innot/argparseDecorator/actions/workflows/ci.yaml)
 [![codecov](https://codecov.io/gh/innot/argparseDecorator/branch/master/graph/badge.svg?token=IPZB3RQUXD)](https://codecov.io/gh/innot/argparseDecorator)
 
