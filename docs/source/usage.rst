@@ -738,9 +738,6 @@ returning to the caller :py:`sys.stdout` and :py:`sys.stderr` are restored to th
     cli.execute("echo foobar", stdout=my_stdout)
     print(stdout.getvalue())    # prints 'foobar'
 
-.. note::
-
-    When running in an
 
 Redirecting Input
 +++++++++++++++++

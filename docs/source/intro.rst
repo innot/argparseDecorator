@@ -98,6 +98,22 @@ Now the help command, which is supplied by the argparseDecorator, will output th
 
 See :ref:`Using the argparseDecorator` for more details and examples.
 
+Version history
++++++++++++++++
+
+1.2.0
+    - Added support for sys.argv argument lists in execute()
+    - Using shlex to split commandlines into tokens.
+    - Numerous minor bug fixes
+
+1.1.0
+    - Added support for execute_async()
+
+1.0.2
+    - Added support for quoted input to the execute method
+
+1.0.1
+    - first release
 
 .. _argparse: https://docs.python.org/3/library/argparse.html
 .. _decorator: https://docs.python.org/3/glossary.html#term-decorator
