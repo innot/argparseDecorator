@@ -5,6 +5,7 @@
 [![Build](https://github.com/innot/argparseDecorator/actions/workflows/ci.yaml/badge.svg)](https://github.com/innot/argparseDecorator/actions/workflows/ci.yaml)
 [![codecov](https://codecov.io/gh/innot/argparseDecorator/branch/master/graph/badge.svg?token=IPZB3RQUXD)](https://codecov.io/gh/innot/argparseDecorator)
 
+
 # About
 
 argparseDecorator is a tool to ease working with the [argparse](https://docs.python.org/3/library/argparse.html)
