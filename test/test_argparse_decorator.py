@@ -10,15 +10,28 @@
 
 from __future__ import annotations
 
+import argparse
 import io
 import unittest
 from typing import Literal
 
+from argparsedecorator import NonExitingArgumentParser
 from argparsedecorator.annotations import *
 from argparsedecorator.argparse_decorator import *
 
 
-class MyTestCase(unittest.TestCase):
+class TestSync(unittest.TestCase):
+
+    def test_init(self):
+        apd = ArgParseDecorator()
+        self.assertIsNotNone(apd)
+
+        apd = ArgParseDecorator(argparser_class=argparse.ArgumentParser)
+        self.assertEqual(argparse.ArgumentParser, apd.rootnode.argparser_class)
+
+        with self.assertRaises(TypeError):
+            # noinspection PyTypeChecker
+            _ = ArgParseDecorator(argparser_class=str)
 
     def test_simple_command(self):
         apd = ArgParseDecorator()
@@ -185,6 +198,12 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(101, result)
         self.assertEqual(101, self.foobar_arg1)
 
+        with self.assertRaises(ValueError):
+            self.parser.execute("foobar 101", None)
+
+        with self.assertRaises(ValueError):
+            self.parser.execute("foobar 101")
+
     def test_output_redirect(self):
         parser = ArgParseDecorator()
 
@@ -241,6 +260,11 @@ class MyTestCase(unittest.TestCase):
         lexer = shlex("foo bar baz")
         self.assertEqual(["foo", "bar", "baz"], split_commandline(lexer))
 
+        # invalid commandline
+        with self.assertRaises(TypeError):
+            # noinspection PyTypeChecker
+            split_commandline(123)
+
     def test_suppress_option(self):
         cli = ArgParseDecorator()
 
@@ -259,7 +283,7 @@ class MyTestCase(unittest.TestCase):
         helptext = stdout.getvalue()
         self.assertFalse("debug" in helptext)
 
-    def test_argparse_help(self):
+    def test_argparse_help_argparse(self):
         cli = ArgParseDecorator(helpoption="-h")
 
         @cli.command
@@ -271,9 +295,70 @@ class MyTestCase(unittest.TestCase):
             return foobar
 
         stdout = io.StringIO()
-        cli.execute("test -h foobar", stdout=stdout)
+        stderr = io.StringIO()
+        cli.execute("test -h", stdout=stdout, stderr=stderr)
         helptext = stdout.getvalue()
         self.assertTrue("foobar" in helptext)
+
+    def test_argparse_help_none(self):
+        cli = ArgParseDecorator(helpoption=None)
+
+        @cli.command
+        def test(foobar):
+            """
+            Test -h help argument.
+            :param foobar: some value
+            """
+            return foobar
+
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+        cli.execute("test -h foobar", stdout=stdout, stderr=stderr)
+        errtext = stderr.getvalue()
+        self.assertTrue("-h" in errtext)
+        stdout.flush()
+        stderr.flush()
+        cli.execute("help test", stdout=stdout, stderr=stderr)
+        errtext = stderr.getvalue()
+        self.assertTrue("help" in errtext)
+
+        # test invalid helpoption
+        with self.assertRaises(ValueError):
+            _ = ArgParseDecorator(helpoption="foobar")
+
+    def test_custom_argparser(self):
+        class TestParser(argparse.ArgumentParser):
+            pass
+
+        cli = ArgParseDecorator(argparser_class=None)
+        self.assertEqual(NonExitingArgumentParser, cli.argumentparser.__class__)
+
+        cli = ArgParseDecorator(argparser_class=TestParser)
+        self.assertEqual(TestParser, cli.argumentparser.__class__)
+
+        with self.assertRaises(TypeError):
+            # noinspection PyTypeChecker
+            cli = ArgParseDecorator(argparser_class=str)
+            print(cli.argumentparser.__class__)  # should not get here
+
+    def test_argumentparser_property(self):
+        cli = ArgParseDecorator()
+        self.assertTrue(isinstance(cli.argumentparser, ArgumentParser))
+
+    def test_command_dict(self):
+        cli = ArgParseDecorator()
+
+        @cli.command
+        def cmd_on():
+            pass
+
+        @cli.command
+        def cmd_off():
+            pass
+
+        cmds = cli.command_dict
+        self.assertIsNotNone(cmds)
+        self.assertDictEqual({"help": None, "cmd": {"on": None, "off": None}}, cmds)
 
 
 class TestAsync(unittest.IsolatedAsyncioTestCase):
@@ -296,6 +381,66 @@ class TestAsync(unittest.IsolatedAsyncioTestCase):
 
         result = await cli.execute_async("test2")
         self.assertEqual(43, result)
+
+    async def test_async_redirect(self):
+        cli = ArgParseDecorator()
+
+        @cli.command
+        async def test() -> None:
+            result = input()
+            print(result)
+            sys.stderr.write("stderrtest")
+
+        stdin = io.StringIO("stdintest")
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+
+        await cli.execute_async("test", stdin=stdin, stdout=stdout, stderr=stderr)
+        self.assertEqual(stdout.getvalue().strip(), stdin.getvalue().strip())
+        self.assertTrue("stderrtest" in stderr.getvalue())
+
+    async def test_errorhandler(self):
+        cli = ArgParseDecorator()
+        self.err = ""
+
+        @cli.command
+        async def test(foo: int) -> int:
+            return foo
+
+        def myerrorhandler(err: ArgumentError):
+            self.err = err
+
+        await cli.execute_async("test foobar", error_handler=lambda x: myerrorhandler(x))
+        self.assertTrue(isinstance(self.err, ArgumentError))
+
+        with self.assertRaises(ArgumentError):
+            await cli.execute_async("test foobar", error_handler=None)
+
+    parser = ArgParseDecorator()
+
+    @parser.command
+    async def foobar(self, arg1: int = 42) -> int:
+        self.foobar_arg1 = arg1
+        return arg1
+
+    async def test_classmethod(self):
+        node = self.parser.rootnode.get_node("foobar")
+        self.assertIsNotNone(node)
+        args = node.arguments
+        self.assertTrue("arg1" in args)
+        arg1 = args['arg1']
+        self.assertEqual(int, arg1.type)
+        self.assertEqual(42, arg1.default)
+
+        result = await self.parser.execute_async("foobar 101", self)
+        self.assertEqual(101, result)
+        self.assertEqual(101, self.foobar_arg1)
+
+        with self.assertRaises(ValueError):
+            await self.parser.execute_async("foobar 101", None)
+
+        with self.assertRaises(ValueError):
+            await self.parser.execute_async("foobar 101")
 
     if __name__ == '__main__':
         unittest.main()

@@ -93,7 +93,7 @@ class ArgParseDecorator:
         self._rootnode: ParserNode = ParserNode(None, **kwargs)
 
         if argparser_class:
-            if isinstance(argparser_class, ArgumentParser):
+            if issubclass(argparser_class, ArgumentParser):
                 self._rootnode.argparser_class = argparser_class
             else:
                 raise TypeError("argparser_class not a subclass of ArgumentParser")
@@ -107,7 +107,7 @@ class ArgParseDecorator:
         if helpoption == "-h":
             self._rootnode.add_help = True
 
-        if helpoption == "None":
+        if helpoption is None:
             self._rootnode.add_help = False
 
     @property
@@ -117,11 +117,7 @@ class ArgParseDecorator:
 
         This property is read only
         """
-        argparser: ArgumentParser = self._rootnode.argumentparser
-        if argparser is None:
-            self._rootnode.generate_parser(None)
-            argparser = self._rootnode.argumentparser
-
+        argparser = self._rootnode.argumentparser
         return argparser
 
     @property
@@ -142,7 +138,10 @@ class ArgParseDecorator:
         """
         Get a dictionary with all commands in a form suitable for the
         `Python Prompt Toolkit <https://python-prompt-toolkit.readthedocs.io/en/master/>`_
-        help function.
+        autocompleter function.
+
+        See `Nested completion <https://python-prompt-toolkit.readthedocs.io/en/master/pages/asking_for_input.html#nested-completion>`_
+        for details.
 
         :returns: dict
         """

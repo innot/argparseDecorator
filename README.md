@@ -11,26 +11,24 @@ to mark any function as a command and to generate the ArgumentParser from the fu
 With this it is quite easy to make command line interfaces like, for example, a shell like cli:
 
 ```python
-from argparseDecorator import *
+from argparsedecorator import *
 
 cli = ArgParseDecorator()
 
 
 @cli.command
-def ls(arg1, arg2, arg3)
+def ls(arg1, arg2, arg3):
     ...
 
 
 @cli.command
-def mv(...)
+def mv(...):
     ...
 
 
 @cli.command
-def cp(...)
-
-
-...
+def cp(...):
+    ...
 
 cmdline = input()
 cli.execute(cmdline)
@@ -86,7 +84,7 @@ to learn more about the supported annotations.
 Now a command line can be parsed and executed like this:
 
 ```python
-   result = cli.execute("ls -a -c 2 --sort rev --ignore *.log")
+result = cli.execute("ls -a -c 2 --sort rev --ignore *.log")
 ```
 
 ArgParseDecorator uses the docstring of the decorated function to get a help string for the command, and it also parses
@@ -96,7 +94,7 @@ for arguments as well as additional metadata that can not be written as annotati
 The information provided by the docstring is used by the built-in help command:
 
 ```python
- parser.execute("help ls")
+parser.execute("help ls")
 ```
 
 ```

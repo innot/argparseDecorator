@@ -93,7 +93,7 @@ class DemoCLI:
     @cli.command
     @cli.add_argument("--foo", "-f", action="store_true", help="The foo flag")
     @cli.add_argument("--bar", "-b", type=int, help="The bar value (integer)")
-    def test__arg(self, *args, **kwargs):
+    def test__arg(self, **kwargs):
         """
         Test decorator argument.
         """

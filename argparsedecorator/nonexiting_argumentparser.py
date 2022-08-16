@@ -35,8 +35,8 @@ class NonExitingArgumentParser(argparse.ArgumentParser):
             self.exit_on_error = False
 
     def exit(self, status=0, message=None):
-        """Overriden to not call
-        `sys.exit() <https://docs.python.org/3/library/sys.html#sys.exit>`_.
+        """
+        Overriden to not call `sys.exit() <https://docs.python.org/3/library/sys.html#sys.exit>`_.
         Instead an ``ArgumentError`` is raised if the status is not zero.
         """
         self._print_message(message, sys.stderr)

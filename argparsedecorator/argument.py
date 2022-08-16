@@ -50,6 +50,9 @@ class Argument:
             raise ValueError("An alias name must start with a '-'")
         self._alias.append(alias)
 
+        # override the argparse default to use the longest optional name
+        self._dest = self.name.lstrip('-')
+
     @property
     def action(self) -> Union[str, Action]:
         """
@@ -61,12 +64,14 @@ class Argument:
 
     @action.setter
     def action(self, new_action: Union[str, Type[Action]]):
-        if not isinstance(new_action, str) and not issubclass(new_action, Action):
+        try:
+            if isinstance(new_action, str) or issubclass(new_action, Action):
+                if self._action:
+                    if self._action != new_action:
+                        raise ValueError(f"new action does not match previously set action")
+                self._action = new_action
+        except TypeError:
             raise TypeError("Action must be a string or a subtype of argparse.Action")
-        if self._action:
-            if self._action != new_action:
-                raise ValueError(f"new action does not match previously set action")
-        self._action = new_action
 
     @property
     def nargs(self) -> Union[str, int]:
@@ -242,14 +247,11 @@ class Argument:
         Usually 'None', but if any aliases have been set the dest is automatically set
         to the Argument name,  but without any '-' at the beginning.
         This is to override the argparse default to use the longest optional name."""
-        if not self.alias:
-            return None
-        else:
-            return self.name.lstrip('-')
+        return self._dest
 
     @dest.setter
     def dest(self, value: str) -> None:
-        raise NotImplementedError("Setting dest is currently not implemented")
+        raise NotImplementedError("Setting dest is not implemented")
 
     @property
     def positional(self) -> bool:
@@ -331,6 +333,6 @@ class Argument:
     def __str__(self):
         args, kwargs = self.get_command_line()
         argstr = ",".join(list(args))
-        kwargstr = ",".join(f"{key}={value}" for key, value in kwargs)
+        kwargstr = ",".join(f"{key}={value}" for key, value in kwargs.items())
         result = argstr + ", " + kwargstr if kwargstr else argstr
         return result

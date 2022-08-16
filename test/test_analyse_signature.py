@@ -84,10 +84,12 @@ class TestSignatureParser(unittest.TestCase):
         node.analyse_annotation("", arg)
         self.assertEqual({}, arg.get_command_line()[1])
         node.analyse_annotation("int", arg)
+        self.assertEqual(int, arg.type)
         self.assertEqual({"type": int}, arg.get_command_line()[1])
 
         arg = Argument("test2")
         node.analyse_annotation("int | OneOrMore[int]", arg)
+        self.assertEqual(int, arg.type)
         self.assertCountEqual({"type": int, "nargs": '+'}, arg.get_command_line()[1])
 
         arg = Argument("test3")
@@ -230,19 +232,32 @@ class TestSignatureParser(unittest.TestCase):
         #        node.analyse_annotation_part(AppendConstAction.__name__, arg)
         #        self.assertEqual("append_const", arg.action)
 
-        arg = Argument("test19")
+        arg = Argument("test19a")
+        arg.type = int  # count action will remove an explicit int type
         node.analyse_annotation_part(CountAction.__name__, arg)
         self.assertEqual("count", arg.action)
         self.assertIsNone(arg.type)
-        # must be None because argparse implies this and does not like explicit type.
+
+        arg = Argument("test19b")
+        arg.type = str  # count action does not accept other types
+        with self.assertRaises(TypeError):
+            node.analyse_annotation_part(CountAction.__name__, arg)
 
         arg = Argument("test20")
         node.analyse_annotation_part(ExtendAction.__name__, arg)
         self.assertEqual("extend", arg.action)
 
-        arg = Argument("test21")
+        arg = Argument("test21a")
         node.analyse_annotation_part(f"{CustomAction.__name__}[MyAction]", arg)
         self.assertEqual(MyAction, arg.action)
+
+        arg = Argument("test21b")
+        with self.assertRaises(ValueError):
+            node.analyse_annotation_part(f"{CustomAction.__name__}[]", arg)
+
+        arg = Argument("test21c")
+        with self.assertRaises(ValueError):
+            node.analyse_annotation_part(f"{CustomAction.__name__}['foobars']", arg)  # str is not callable
 
 
 if __name__ == '__main__':

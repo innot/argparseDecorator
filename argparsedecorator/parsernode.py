@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import collections.abc
 import inspect
 import re
 import sys
@@ -116,7 +115,7 @@ class ParserNode:
         is regenerated.
         """
         if not self._parser:
-            # need to generate it first, strating at the root node
+            # need to generate it first, starting at the root node
             self.root.generate_parser(None)
         return self._parser
 
@@ -132,25 +131,16 @@ class ParserNode:
         passed to the root node and, if the parser has already been generated, the whole parser
         will be regenerated.
         """
-        if self._parent:
-            # traverse to root
-            return self._parent.argparser_class
-        # this is root
-        if self._argparser_class:
-            return self._argparser_class
-        else:
-            return NonExitingArgumentParser  # default
+        rootnode = self.root
+        return rootnode._argparser_class
 
     @argparser_class.setter
     def argparser_class(self, new_class: Type[ArgumentParser]):
-        if self._parent:
-            # traverse to root
-            self._parent.argparser_class = new_class
-        # this is root
-        self._argparser_class = new_class
-        if self._parser:
+        rootnode = self.root
+        rootnode._argparser_class = new_class
+        if rootnode._parser:  # has been generated before
             # regenerate parser
-            self.generate_parser(None)
+            rootnode.generate_parser(None)
 
     @property
     def function(self) -> Callable[[Dict[str, Any]], Any]:
@@ -278,6 +268,8 @@ class ParserNode:
 
         If :code:`False` this is inhibited. This is useful if the caller supplies its own help system.
 
+        This property is valid for this node and all of its children.
+
         Default is :code:`False`.
         """
         return self._add_help
@@ -308,12 +300,12 @@ class ParserNode:
             parser_cls = self.argparser_class
             self._parser = parser_cls(prog=self._prog,
                                       description=self.description,
-                                      add_help=self._add_help)
+                                      add_help=self.add_help)
         else:
             self._parser = parentparser.add_parser(name=self.title,
                                                    help=self.description,
                                                    description=self.description,
-                                                   add_help=self.root.add_help)
+                                                   add_help=self.add_help)
 
         # Add arguments
         if self.arguments:
@@ -353,6 +345,7 @@ class ParserNode:
         if not node:
             # node does not exist. Create it
             node = ParserNode(name, self)
+            node.add_help = self.add_help
             self._children[name] = node
             self.root._parser = None  # invalidate any previously created ArgumentParsers
 
@@ -368,7 +361,7 @@ class ParserNode:
         :return: :code:`True` if node exists
         """
         names: List[str] = [command] if isinstance(command, str) else command.copy()
-        if not names:
+        if not names:  # empty list
             return False
 
         if names[0] == self._title:  # name match,
@@ -388,7 +381,11 @@ class ParserNode:
         """
         Get a dictionary with all commands in a form suitable for the
         `Python Prompt Toolkit <https://python-prompt-toolkit.readthedocs.io/en/master/>`_
-        help function.
+        autocompleter function.
+
+        See `Nested completion
+        <https://python-prompt-toolkit.readthedocs.io/en/master/pages/asking_for_input.html#nested-completion>`_
+        for details.
 
         :returns: dict
         """
@@ -525,10 +522,6 @@ class ParserNode:
         elif is_type_key(Exactly1, part):
             check_explicit_type(part, arg)
             arg.nargs = 1
-
-        elif is_type_key(Exactly1, part):
-            check_explicit_type(part, arg)
-            arg.nargs = 1
         elif is_type_key(Exactly2, part):
             check_explicit_type(part, arg)
             arg.nargs = 2
@@ -562,23 +555,35 @@ class ParserNode:
 
         elif is_type_key(StoreAction, part):
             arg.action = "store"
+
         elif is_type_key(StoreConstAction, part):
             arg.action = "store_const"
+
         elif is_type_key(StoreTrueAction, part):
             arg.action = "store_true"
+
         elif is_type_key(StoreFalseAction, part):
             arg.action = "store_false"
+
         elif is_type_key(AppendAction, part):
             arg.action = "append"
-        #        elif is_type_key(AppendConstAction, part):
-        #            arg.action = "append_const"
+
+        # AppendConstAction is not supported by ArgParseDecorator
+        # elif is_type_key(AppendConstAction, part):
+        #     arg.action = "append_const"
+
         elif is_type_key(CountAction, part):
             arg.action = "count"
-            if arg.type:
+            if arg.type == int:
                 # the count action implies an int type and does not like explicit type declarations
                 arg.type = None
+            elif arg.type:
+                # raise an exception if any type other than int has been set
+                raise TypeError("'Count' implies type int and does not accept any other type.")
+
         elif is_type_key(ExtendAction, part):
             arg.action = "extend"
+
         elif is_type_key(CustomAction, part):
             expression = get_bracket_content(part)
             expression = resolve_literals(expression)
@@ -666,7 +671,7 @@ class ParserNode:
             arg_aliases = tmp[1].split(',')
             arg_aliases = [s.strip() for s in arg_aliases]
         else:
-            arg_aliases = []
+            raise ValueError(":alias: directive requires at least one alias.")
 
         # aliases only work for flag (-f) or optional (--foo)
         arg = self.get_argument(arg_name)
@@ -681,39 +686,45 @@ class ParserNode:
         # split into name and the coices
         tmp = line.split(':', maxsplit=1)
         arg_name = tmp.pop(0).strip()
-        if not tmp:
+        if not tmp or not tmp[0]:
             raise ValueError(":choices ...: must have some actual choices.")
         arg = self.get_argument(arg_name)
         if not arg:
             raise NameError(f":choices {arg_name}: Can't find an argument names {arg_name}")
 
         choices = eval(tmp[0], self.function_globals)
-        if len(choices) == 1 or isinstance(choices, collections.abc.Sequence):
+        # choices must be iterable. Check this
+        try:
+            _ = iter(choices)
             arg.choices = choices
-        else:
+        except TypeError:
             raise ValueError(f"Value of :choices {arg_name}: is not a sequence.")
 
     def parse_metavar(self, line: str) -> None:
         # split into name and the coices
         tmp = line.split(':', maxsplit=1)
         arg_name = tmp.pop(0).strip()
-        if not tmp:
+        if not tmp or not tmp[0]:
             raise ValueError(":metavar ...: requires at least one metavar name.")
         arg = self.get_argument(arg_name)
         if not arg:
-            raise NameError(f":metavar {arg_name}: Can't find an argument names {arg_name}")
+            raise NameError(f":metavar {arg_name}: Can't find an argument named {arg_name}")
 
         metas = split_strip(tmp[0])
         metas = [m.strip('"\'') for m in metas]
         arg.metavar = metas
 
     def __str__(self, level: int = 0):
-        tab = '\t' * level
-        print(tab + f"{self.title} : {self.description}")
+        args = ','.join([str(arg) for arg in self.arguments])
+        result = f"{self.title}({args}) : {self.description}"
         if self._children:
-            print(tab + "\tSubCommands:")
             for name in self._children.keys():
-                self._children[name].__str__(level + 1)
+                childstr = str(self._children[name])
+                # indent by one tab
+                chlstrlist = [f"\t{val}" for val in childstr.splitlines()]
+                childstr = "\n".join(chlstrlist)
+                result = f"{result}\n{childstr}"
+        return result
 
 
 def split_strip(string: str, sep: str = ',') -> List[str]:
@@ -814,19 +825,18 @@ def split_union(string: str) -> List[str]:
     result.append("".join(tmp).strip())
     return result
 
-
 # unused. Dirty hack used during development.
 # Kept here in case I need it some other time.
-def get_caller_globals():
-    """Get the local namespace of the outside caller."""
-    stack = inspect.stack()
-
-    while stack:
-        frameinfo = stack.pop(0)
-        filename = frameinfo.filename
-        if filename.endswith("\\parsernode.py") or filename.endswith("\\argparse_decorator.py"):
-            continue
-        frame = frameinfo[0]
-        return frame.f_globals
-
-    return globals()  # fallback to our own globals
+# def get_caller_globals():
+#     """Get the local namespace of the outside caller."""
+#     stack = inspect.stack()
+#
+#     while stack:
+#         frameinfo = stack.pop(0)
+#         filename = frameinfo.filename
+#         if filename.endswith("\\parsernode.py") or filename.endswith("\\argparse_decorator.py"):
+#             continue
+#         frame = frameinfo[0]
+#         return frame.f_globals
+#
+#     return globals()  # fallback to our own globals

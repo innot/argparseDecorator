@@ -22,7 +22,7 @@ class MyTestCase(unittest.TestCase):
 
         @parser.command
         def ls(files: ZeroOrMore[str],
-               a: Flag = True,
+               a: Flag = False,
                ignore: Option | Exactly1[str] = "",
                columns: Option | int | Choices[Literal["range(1,5)"]] = 1,
                sort: Option | Choices[Literal["fwd", "rev"]] = "fwd",
