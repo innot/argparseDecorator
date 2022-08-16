@@ -1,5 +1,6 @@
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/ArgParseDecorator)
+![Python Version](https://img.shields.io/pypi/pyversions/ArgParseDecorator)
 [![pypi](https://img.shields.io/pypi/v/ArgParseDecorator.svg)](https://pypi.org/project/ArgParseDecorator)
+[![RTD](https://readthedocs.org/projects/ArgParseDecorator/badge/?version=latest)](https://argparsedecorator.readthedocs.io)
 [![Build](https://github.com/innot/argparseDecorator/actions/workflows/ci.yaml/badge.svg)](https://github.com/innot/argparseDecorator/actions/workflows/ci.yaml)
 [![codecov](https://codecov.io/gh/innot/argparseDecorator/branch/master/graph/badge.svg)](https://codecov.io/gh/innot/argparseDecorator)
 
