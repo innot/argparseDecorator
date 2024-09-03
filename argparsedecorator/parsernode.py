@@ -64,6 +64,9 @@ class ParserNode:
         # The sub commands as a dictionary with the name of the subcommand and its ParserNode.
         self._children: Dict[str, ParserNode] = {}
 
+        self._aliases: List[str] = []
+        """Normally empty List of all aliases of this command."""
+
         self.description: str = ""
 
         self._arguments: Dict[str, Argument] = {}
@@ -104,6 +107,27 @@ class ParserNode:
             return self._parent.root
         # This node is the root.
         return self
+
+    @property
+    def aliases(self) -> List[str]:
+        """
+        A List of all aliases of this command.
+        One or more alias strings can be added to this node.
+        """
+        return self._aliases
+
+    @aliases.setter
+    def aliases(self, value: str | Iterable[str]) -> None:
+        if isinstance(value, str):
+            self._aliases.append(value)
+        else:
+            try:
+                for s in value:
+                    if not isinstance(s, str):
+                        raise ValueError(f"'{s}' is not a valid string for an alias")
+                    self._aliases.append(s)
+            except TypeError as exc:
+                raise ValueError(f"'{value}' is not a valid string for an alias") from exc
 
     @property
     def argumentparser(self) -> ArgumentParser:
@@ -303,6 +327,7 @@ class ParserNode:
                                       add_help=self.add_help)
         else:
             self._parser = parentparser.add_parser(name=self.title,
+                                                   aliases=self.aliases,
                                                    help=self.description,
                                                    description=self.description,
                                                    add_help=self.add_help)

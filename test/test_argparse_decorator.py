@@ -169,7 +169,7 @@ class TestSync(unittest.TestCase):
         @apd.command()
         @apd.add_argument("foo")
         @apd.add_argument("bar")
-        def cmd(*args: str, **kwargs: Any) -> Tuple[Tuple[str], Dict[Any]]:
+        def cmd(*args: str, **kwargs: Any) -> tuple[tuple[str, ...], dict[str, Any]]:
             return args, kwargs
 
         result, _ = apd.execute("cmd foo bar")
@@ -360,6 +360,42 @@ class TestSync(unittest.TestCase):
         self.assertIsNotNone(cmds)
         self.assertDictEqual({"help": None, "cmd": {"on": None, "off": None}}, cmds)
 
+    def test_command_aliases(self):
+        cli = ArgParseDecorator()
+
+        @cli.command(aliases=["foo", "bar"])
+        def foobar(arg1: int) -> int:
+            return arg1
+
+        result = cli.execute("foobar 100")
+        self.assertEqual(100, result)
+
+        result = cli.execute("foo 101")
+        self.assertEqual(101, result)
+
+        result = cli.execute("bar 102")
+        self.assertEqual(102, result)
+
+        @cli.command(aliases="test2")  # check single alias
+        def test1(arg1: int) -> int:
+            return arg1
+
+        result = cli.execute("test1 100")
+        self.assertEqual(100, result)
+        result = cli.execute("test2 101")
+        self.assertEqual(101, result)
+
+        # test invalid aliases
+        with self.assertRaises(ValueError):
+            @cli.command(aliases=["good", 100])
+            def test2() -> None:
+                pass
+
+        with self.assertRaises(ValueError):
+            @cli.command(aliases=100)
+            def test3() -> None:
+                pass
+
 
 class TestAsync(unittest.IsolatedAsyncioTestCase):
 
@@ -442,5 +478,6 @@ class TestAsync(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError):
             await self.parser.execute_async("foobar 101")
 
-    if __name__ == '__main__':
-        unittest.main()
+
+if __name__ == '__main__':
+    unittest.main()
