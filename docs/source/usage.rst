@@ -132,6 +132,21 @@ If no help is wanted set ``helpoption`` to :py:`None`
 
     cli = ArgParseDecorator(helpoption=None)
 
+Command Aliases
++++++++++++++++
+
+If needed a command can be assigned one or more aliases. These can easily be added via the decorator:
+
+.. code-block:: python
+
+    @cli.command(aliases=["co"])
+    def checkout():
+        ...
+
+In this example the short ``co`` can be used instead the more verbose ``checkout`` command.
+When using ``help`` aliases are shown in parenthesis.
+
+
 Subcommands
 +++++++++++
 
