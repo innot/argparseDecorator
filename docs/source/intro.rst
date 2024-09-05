@@ -100,6 +100,8 @@ See :ref:`Using the argparseDecorator` for more details and examples.
 
 Version history
 +++++++++++++++
+1.3.0
+    - Added support for command aliases
 
 1.2.0
     - Added support for sys.argv argument lists in execute()

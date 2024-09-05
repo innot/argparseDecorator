@@ -147,10 +147,11 @@ will install the argParseDecorator module.
 Comprehensive documentation is available at https://argparseDecorator.readthedocs.io/.
 
 ## Version
-
+* 1.3.0
+  * Added support for command aliases
 * 1.2.0 
   * Added support for sys.argv argument lists in execute()
-  * Using shlex to split commandlines into tokens.
+  * Using shlex to split commandlines into tokens
   * Numerous minor bug fixes
 * 1.1.0 
   * Added support for execute_async()

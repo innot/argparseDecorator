@@ -1,6 +1,6 @@
 # This file is part of the ArgParseDecorator library.
 #
-# Copyright (c) 2022 Thomas Holland
+# Copyright (c) 2022,2024 Thomas Holland
 #
 # This work is licensed under the terms of the MIT license.
 # For a copy, see the accompaning LICENSE.txt.txt file or
@@ -168,6 +168,13 @@ class ArgParseDecorator:
         def decorator(func: Callable) -> Callable:
             node: ParserNode = self._node_from_func(func)
             if not (len(args) == 1 and len(kwargs) == 0 and callable(args[0])):
+                try:
+                    aliases = kwargs.pop("aliases")
+                    node.aliases = aliases
+                except ValueError as exc:
+                    raise exc   # aliases were not valid - break the program
+                except KeyError:
+                    pass
                 # save arguments of decorator
                 node.parser_args = (args, kwargs)
             node.function = func
@@ -175,7 +182,7 @@ class ArgParseDecorator:
 
         # if command is used without (), then args is the decorated function,
         # and we need to call the decorator ourselves.
-        # otherwise, i.e. command(...) is used, the args contain a tuble of all arguments,
+        # otherwise, i.e. command(...) is used, the args contain a tuple of all arguments,
         # and we need to return the decorator function to be called later.
         if len(args) == 1 and len(kwargs) == 0 and callable(args[0]):
             return decorator(args[0])
