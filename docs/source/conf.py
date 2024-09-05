@@ -20,11 +20,11 @@ sys.path.insert(0, os.path.abspath('../../examples'))
 # -- Project information -----------------------------------------------------
 
 project = 'argparseDecorator'
-project_copyright = '2022, Thomas Holland'
+project_copyright = '2022,2024 Thomas Holland'
 author = 'Thomas Holland'
 
 # The full version, including alpha/beta/rc tags
-release = '1.2.0'
+release = '1.3.0'
 
 # -- General configuration ---------------------------------------------------
 
@@ -73,8 +73,8 @@ nitpick_ignore = [
     ('py:class', 'ParserNode'),  # autodoc does not like self refering types.
 ]
 nitpick_ignore_regex = [
-    ('py:class', r'prompt_toolkit.*'),  # no referencable API documentation.
-    ('py:class', r'asyncssh.*'),  # no referencable API documentation.
+    ('py:class', r'prompt_toolkit.*'),  # no referenceable API documentation.
+    ('py:class', r'asyncssh.*'),  # no referenceable API documentation.
 
 ]
 
@@ -84,5 +84,3 @@ add_module_names = False
 
 autodoc_typehints = "signature"
 autodoc_typehints_format = "short"
-
-

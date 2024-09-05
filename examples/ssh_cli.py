@@ -61,7 +61,7 @@ from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts import yes_no_dialog, ProgressBar
 from prompt_toolkit.styles import Style
 
-from argparsedecorator import *
+from argparsedecorator import ArgParseDecorator, ZeroOrOne
 
 style = Style.from_dict({
     'error': 'red',
@@ -166,6 +166,7 @@ class BaseCLI:
     """The :class:`~.argparse_decorator.ArgParseDecorator` used to decorate command methods."""
 
     def __init__(self):
+        self.prompt_session = None
         self.stdout: TextIO = sys.stdout
         self.stdin: TextIO = sys.stdin
         self.promptsession = None
@@ -365,7 +366,7 @@ class DemoCLI(BaseCLI):
 
 class SshCLIServer:
     """
-    Implementation of the `asyncssh SSHServer <https://asyncssh.readthedocs.io/en/latest/api.html#sshserver>`_
+    Implementation of the `asyncssh SSHServer <https://asyncssh.readthedocs.io/en/latest/api.html#asyncssh.SSHServer>`_
 
     :param cli: The CLI to use for incoming ssh connections
     :param port: The port number to use for the server. Defaults to 8222
