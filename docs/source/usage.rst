@@ -300,9 +300,18 @@ that the argument of a command is a flag.
 This is done with the ``Flag`` and ``Option`` annotations. The ``Flag`` tells the the decorator
 to internally add a single ``-`` to the argument. ``Option`` does the same, but with a double hyphen ``--``.
 
-If an *Flag* or *Option* should have multiple names, e.g. a long Option name like ``--foobar`` and a short
-*Flag* name like ``-f`` an ``:alias --foobar: -f`` must be added to the docstring of the command function.
+If an ``Flag`` or ``Option`` should have multiple names, e.g. a long Option name like ``--foobar`` and a short
+``Flag`` name like ``-f`` an ``:alias --foobar: -f`` must be added to the docstring of the command function.
 See :ref:`Aliases` below for details.
+
+Normally a ``Flag`` or ``Option`` is optional, i.e. it may be left out of the command line.
+In case there is a need to require the presence of the Flag/Option on the command line the
+``RequiredFlag`` or ``RequiredOption`` annotations can be used instead to enforce the presence of
+the Flag/Option on the command line.
+Depending on the :ref:`Error Hander <Error Handling>` a missing, required Flag/Option will either generate
+an error message on ``sys.stderr`` (default) or
+raise an `ArgumentError <https://docs.python.org/3/library/argparse.html#exceptions>`_ (``errorhandler=None``)
+
 
 Argument Type
 +++++++++++++

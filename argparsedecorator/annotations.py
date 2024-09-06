@@ -60,6 +60,32 @@ class Flag:
             f"{cls.__name__} is only used for annotations and should not be instantiated,")
 
 
+class RequiredFlag:
+    """
+    Marks the argument as a Flag that must be supplied.
+
+    A Flag starts with a single hyphen :code:`-`.
+
+    .. note::
+        While this is not enforced, required flags should have at least one argument.
+
+    .. code-block::
+
+        def cmd(f: RequiredFlag|OneOrMore[int]):
+            return f
+
+        result = parser.execute("cmd -f 100")  # result = [100]
+        result = parser.execute("cmd")         # results in an Error
+
+    See `argparse: required <https://docs.python.org/3/library/argparse.html#required>`_
+    for details.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
+
+
 class Option:
     """
     Marks the argument as an Option.
@@ -74,10 +100,36 @@ class Option:
         def cmd(foo: Option = False):
             return foo
 
-        result = parser.execute("cmd -foo")  # result = True
-        result = parser.execute("cmd")       # result = False  (the default)
+        result = parser.execute("cmd --foo")    # result = True
+        result = parser.execute("cmd")          # result = False  (the default)
 
     See `argparse: name-or-flags <https://docs.python.org/3/library/argparse.html#name-or-flags>`_
+    for details.
+    """
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError(
+            f"{cls.__name__} is only used for annotations and should not be instantiated,")
+
+
+class RequiredOption:
+    """
+    Marks the argument as an Option that must be supplied.
+
+    An Option starts with a double hyphen :code:`--`.
+
+    .. note::
+        While this is not enforced, required options should have at least one argument.
+
+    .. code-block::
+
+        def cmd(foo: RequiredOption|OneOrMore[int]):
+            return foo
+
+        result = parser.execute("cmd --foo 100")    # result = [100]
+        result = parser.execute("cmd")              # results in an Error
+
+    See `argparse: required <https://docs.python.org/3/library/argparse.html#required>`_
     for details.
     """
 

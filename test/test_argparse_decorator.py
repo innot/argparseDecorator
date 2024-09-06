@@ -94,6 +94,32 @@ class TestSync(unittest.TestCase):
         self.assertEqual(42, a2)
         self.assertIsNone(a3)
 
+    def test_required_flag(self):
+        apd = ArgParseDecorator()
+
+        @apd.command
+        def cmd(flag1: RequiredFlag|Exactly1[int]):
+            """
+            :alias flag1: --option1
+            """
+            return flag1
+
+        node = apd.rootnode.get_node('cmd')
+        args = node.arguments
+        self.assertEqual(1, len(args))
+        arg = args['-flag1']
+        self.assertTrue(arg.required)
+        self.assertTrue(arg.optional)
+
+        a = apd.execute("cmd -flag1 100")
+        self.assertEqual([100], a)
+
+        a = apd.execute("cmd --option1 100")
+        self.assertEqual([100], a)
+
+        with self.assertRaises(ArgumentError):
+            apd.execute("cmd", error_handler=None)
+
     def test_flag_actions(self):
         apd = ArgParseDecorator()
 
@@ -130,6 +156,32 @@ class TestSync(unittest.TestCase):
         f1, f2 = apd.execute("cmd --foo baz --bar 1 2 3")
         self.assertEqual('baz', f1)
         self.assertListEqual([1, 2, 3], f2)
+
+    def test_required_option(self):
+        apd = ArgParseDecorator()
+
+        @apd.command
+        def cmd(option1: RequiredOption|Exactly1[int]):
+            """
+            :alias option1: -flag1
+            """
+            return option1
+
+        node = apd.rootnode.get_node('cmd')
+        args = node.arguments
+        self.assertEqual(1, len(args))
+        arg = args['--option1']
+        self.assertTrue(arg.required)
+        self.assertTrue(arg.optional)
+
+        a = apd.execute("cmd --option1 100")
+        self.assertEqual([100], a)
+
+        a = apd.execute("cmd -flag1 100")
+        self.assertEqual([100], a)
+
+        with self.assertRaises(ArgumentError):
+            apd.execute("cmd", error_handler=None)
 
     def test_count_action(self):
         apd = ArgParseDecorator(helpoption=None)

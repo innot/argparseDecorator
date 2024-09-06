@@ -102,6 +102,7 @@ Version history
 +++++++++++++++
 1.3.0
     - Added support for command aliases
+    - New Annotations: RequiredFlag, RequiredOption
 
 1.2.0
     - Added support for sys.argv argument lists in execute()

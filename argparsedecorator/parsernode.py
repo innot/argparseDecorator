@@ -527,10 +527,18 @@ class ParserNode:
         if is_type_key(Flag, part):
             check_explicit_type(part, arg)
             arg.name = '-' + arg.name
+        elif is_type_key(RequiredFlag, part):
+            check_explicit_type(part, arg)
+            arg.name = '-' + arg.name
+            arg.required = True
 
         elif is_type_key(Option, part):
             check_explicit_type(part, arg)
             arg.name = '--' + arg.name
+        elif is_type_key(RequiredOption, part):
+            check_explicit_type(part, arg)
+            arg.name = '--' + arg.name
+            arg.required = True
 
         elif is_type_key(OneOrMore, part):
             check_explicit_type(part, arg)
