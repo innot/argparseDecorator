@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import io
+import pathlib
 import unittest
 from typing import Literal
 
@@ -227,6 +228,34 @@ class TestSync(unittest.TestCase):
         result, _ = apd.execute("cmd foo bar")
         self.assertEqual("foo", result[0])
         self.assertEqual("bar", result[1])
+
+        # issue #5: This should also work without *args, **kwargs
+
+        apd = ArgParseDecorator()
+
+        @apd.command
+        @apd.add_argument('number', type=int)
+        @apd.add_argument('dest_file', type=pathlib.Path)
+        @apd.add_argument('--flag', '-f', required=True, nargs=1)
+        def test1(dest_file, number, flag):
+            return dest_file, number, flag
+
+        node = apd.rootnode.get_node('test1')
+        args = node.arguments
+        arg1 = args['--flag']
+        arg2 = args['dest_file']
+        arg3 = args['number']
+        self.assertTrue(arg1.required)
+        self.assertIsNotNone(arg2.type)
+        self.assertIsNotNone(arg3.type)
+
+        dest_file, number, flag = apd.execute(r"test1 -f value '/just/some/path' 100")
+        self.assertIsInstance(dest_file, Path)
+        self.assertEqual(Path("/just/some/path"), dest_file)
+        self.assertEqual(100, number)
+        self.assertEqual(["value"], flag)
+
+
 
     # Test command class methods (having self)
 
@@ -447,6 +476,7 @@ class TestSync(unittest.TestCase):
             @cli.command(aliases=100)
             def test3() -> None:
                 pass
+
 
 
 class TestAsync(unittest.IsolatedAsyncioTestCase):

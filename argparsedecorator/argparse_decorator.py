@@ -309,7 +309,7 @@ class ArgParseDecorator:
 
             result = func(*args, **kwargs)
 
-        except ArgumentError as err:
+        except (ArgumentError, TypeError) as err:
             if error_handler:
                 error_handler(err)
             else:

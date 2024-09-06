@@ -266,7 +266,10 @@ class ParserNode:
         """
         if self.has_argument(arg):
             # There can be only one
-            raise ValueError(f"Argument '{arg.name} declared twice.")
+            # raise ValueError(f"Argument '{arg.name} declared twice.")
+            # Issue #5: raising an error prevents the "add_argument" decorator from working as documented.
+            # instead just assume this new argument is a duplicate and ignore it
+            return
         name = arg.name
         self.arguments[name] = arg
 

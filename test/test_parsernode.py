@@ -142,9 +142,6 @@ class MyTestCase(unittest.TestCase):
         self.assertIsNotNone(node.get_argument("a"))
         self.assertIsNone(node.get_argument("foo"))
 
-        with self.assertRaises(ValueError):
-            node.add_argument(Argument("a"))  # may only be added once
-
     def test_get_argument(self):
         node = ParserNode("test")
         node.add_argument(Argument("a"))
