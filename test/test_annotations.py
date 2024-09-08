@@ -17,7 +17,11 @@ class MyTestCase(unittest.TestCase):
         with self.assertRaises(TypeError):
             _ = Flag()
         with self.assertRaises(TypeError):
+            _ = RequiredFlag()
+        with self.assertRaises(TypeError):
             _ = Option()
+        with self.assertRaises(TypeError):
+            _ = RequiredOption()
         with self.assertRaises(TypeError):
             _ = OneOrMore()
         with self.assertRaises(TypeError):

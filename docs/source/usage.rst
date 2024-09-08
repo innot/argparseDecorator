@@ -300,9 +300,18 @@ that the argument of a command is a flag.
 This is done with the ``Flag`` and ``Option`` annotations. The ``Flag`` tells the the decorator
 to internally add a single ``-`` to the argument. ``Option`` does the same, but with a double hyphen ``--``.
 
-If an *Flag* or *Option* should have multiple names, e.g. a long Option name like ``--foobar`` and a short
-*Flag* name like ``-f`` an ``:alias --foobar: -f`` must be added to the docstring of the command function.
+If an ``Flag`` or ``Option`` should have multiple names, e.g. a long Option name like ``--foobar`` and a short
+``Flag`` name like ``-f`` an ``:alias --foobar: -f`` must be added to the docstring of the command function.
 See :ref:`Aliases` below for details.
+
+Normally a ``Flag`` or ``Option`` is optional, i.e. it may be left out of the command line.
+In case there is a need to require the presence of the Flag/Option on the command line the
+``RequiredFlag`` or ``RequiredOption`` annotations can be used instead to enforce the presence of
+the Flag/Option on the command line.
+Depending on the :ref:`Error Hander <Error Handling>` a missing, required Flag/Option will either generate
+an error message on ``sys.stderr`` (default) or
+raise an `ArgumentError <https://docs.python.org/3/library/argparse.html#exceptions>`_ (``errorhandler=None``)
+
 
 Argument Type
 +++++++++++++
@@ -360,6 +369,41 @@ These annotations are supported:
     * :class:`~.annotations.ZeroOrOne`
     * :class:`~.annotations.ZeroOrMore`
     * :class:`~.annotations.OneOrMore`
+
+add_argument Decorator
+++++++++++++++++++++++
+
+While its use is usually not required there might be some situations where
+the function signature and its annotations are not sufficient to accurately
+describe an argument. In this case the :meth:`.ArgParseDecorator.add_argument` decorator can be used.
+Any parameter to this decorator is passed directly to the
+:external:meth:`~argparse.ArgumentParser.add_argument` method of the underlying *ArgumentParser*
+
+The decorated function must have an argument of the same name and in the same order or use :code:`*args` and :code:`**kwargs`
+arguments to retrieve the value of these arguments.
+
+.. code-block:: python
+
+    @cli.command
+    @cli.add_argument('sourcefile', type=argparse.FileType('r', encoding='latin-1'))
+    @cli.add_argument('--flag', '-f')
+    def read(sourcefile, flag):
+        ...
+
+    def read(*args, **kwargs):
+        sourcefile = args[0]
+        flag = kwargs['flag']
+
+
+.. warning::
+    When using add_argument the order of the arguments is important. Unless using the
+    ``*args/**kwargs`` style, the arguments of the function must be in the same order as the
+    ``@cli.add_argument`` decorators **and** Flags and Options **must** be after any positional arguments.
+    This is due to the fact, that Flags and Options are passed as keyword arguments to the function.
+
+.. note::
+    When adding arguments with *add_argument* decorator any annotations for the same argument in the function
+    signature will be ignored.
 
 Docstring
 ---------

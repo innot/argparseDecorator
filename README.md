@@ -149,6 +149,7 @@ Comprehensive documentation is available at https://argparseDecorator.readthedoc
 ## Version
 * 1.3.0
   * Added support for command aliases
+  * New Annotations: RequiredFlag, RequiredOption
 * 1.2.0 
   * Added support for sys.argv argument lists in execute()
   * Using shlex to split commandlines into tokens

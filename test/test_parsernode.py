@@ -23,7 +23,6 @@ class MyTestCase(unittest.TestCase):
         with self.assertRaises(AttributeError):
             # noinspection PyPropertyAccess
             node.title = "foobar"  # read only property
-            self.fail()
 
         tmpnode = node
         for i in range(5):
@@ -32,7 +31,6 @@ class MyTestCase(unittest.TestCase):
         with self.assertRaises(AttributeError):
             # noinspection PyPropertyAccess
             node.root = tmpnode  # read only property
-            self.fail()
 
         self.assertTrue(type(tmpnode.argparser_class) is type(NonExitingArgumentParser))  # default
         tmpnode.argparser_class = argparse.ArgumentParser
@@ -141,9 +139,6 @@ class MyTestCase(unittest.TestCase):
 
         self.assertIsNotNone(node.get_argument("a"))
         self.assertIsNone(node.get_argument("foo"))
-
-        with self.assertRaises(ValueError):
-            node.add_argument(Argument("a"))  # may only be added once
 
     def test_get_argument(self):
         node = ParserNode("test")

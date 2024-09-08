@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import io
+import pathlib
 import unittest
 from typing import Literal
 
@@ -94,6 +95,32 @@ class TestSync(unittest.TestCase):
         self.assertEqual(42, a2)
         self.assertIsNone(a3)
 
+    def test_required_flag(self):
+        apd = ArgParseDecorator()
+
+        @apd.command
+        def cmd(flag1: RequiredFlag|Exactly1[int]):
+            """
+            :alias flag1: --option1
+            """
+            return flag1
+
+        node = apd.rootnode.get_node('cmd')
+        args = node.arguments
+        self.assertEqual(1, len(args))
+        arg = args['-flag1']
+        self.assertTrue(arg.required)
+        self.assertTrue(arg.optional)
+
+        a = apd.execute("cmd -flag1 100")
+        self.assertEqual([100], a)
+
+        a = apd.execute("cmd --option1 100")
+        self.assertEqual([100], a)
+
+        with self.assertRaises(ArgumentError):
+            apd.execute("cmd", error_handler=None)
+
     def test_flag_actions(self):
         apd = ArgParseDecorator()
 
@@ -130,6 +157,32 @@ class TestSync(unittest.TestCase):
         f1, f2 = apd.execute("cmd --foo baz --bar 1 2 3")
         self.assertEqual('baz', f1)
         self.assertListEqual([1, 2, 3], f2)
+
+    def test_required_option(self):
+        apd = ArgParseDecorator()
+
+        @apd.command
+        def cmd(option1: RequiredOption|Exactly1[int]):
+            """
+            :alias option1: -flag1
+            """
+            return option1
+
+        node = apd.rootnode.get_node('cmd')
+        args = node.arguments
+        self.assertEqual(1, len(args))
+        arg = args['--option1']
+        self.assertTrue(arg.required)
+        self.assertTrue(arg.optional)
+
+        a = apd.execute("cmd --option1 100")
+        self.assertEqual([100], a)
+
+        a = apd.execute("cmd -flag1 100")
+        self.assertEqual([100], a)
+
+        with self.assertRaises(ArgumentError):
+            apd.execute("cmd", error_handler=None)
 
     def test_count_action(self):
         apd = ArgParseDecorator(helpoption=None)
@@ -175,6 +228,34 @@ class TestSync(unittest.TestCase):
         result, _ = apd.execute("cmd foo bar")
         self.assertEqual("foo", result[0])
         self.assertEqual("bar", result[1])
+
+        # issue #5: This should also work without *args, **kwargs
+
+        apd = ArgParseDecorator()
+
+        @apd.command
+        @apd.add_argument('number', type=int)
+        @apd.add_argument('dest_file', type=pathlib.Path)
+        @apd.add_argument('--flag', '-f', required=True, nargs=1)
+        def test1(dest_file, number, flag):
+            return dest_file, number, flag
+
+        node = apd.rootnode.get_node('test1')
+        args = node.arguments
+        arg1 = args['--flag']
+        arg2 = args['dest_file']
+        arg3 = args['number']
+        self.assertTrue(arg1.required)
+        self.assertIsNotNone(arg2.type)
+        self.assertIsNotNone(arg3.type)
+
+        dest_file, number, flag = apd.execute(r"test1 -f value '/just/some/path' 100")
+        self.assertIsInstance(dest_file, Path)
+        self.assertEqual(Path("/just/some/path"), dest_file)
+        self.assertEqual(100, number)
+        self.assertEqual(["value"], flag)
+
+
 
     # Test command class methods (having self)
 
@@ -395,6 +476,7 @@ class TestSync(unittest.TestCase):
             @cli.command(aliases=100)
             def test3() -> None:
                 pass
+
 
 
 class TestAsync(unittest.IsolatedAsyncioTestCase):
