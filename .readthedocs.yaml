@@ -6,9 +6,9 @@ version: 2
 
 # Set the version of Python and other tools you might need
 build:
-  os: ubuntu-20.04
+  os: ubuntu-22.04
   tools:
-    python: "3.10"
+    python: "3.12"
   jobs:
     pre_build:
       - python -m sphinx -b linkcheck docs/source/ _build/linkcheck
@@ -30,4 +30,4 @@ python:
       path: .
       extra_requirements:
         - examples
-    - requirements: requirements.txt
+    - requirements: requirements.txt docs/requirements.txt
