@@ -51,7 +51,7 @@ import os
 import sys
 import time
 from asyncio import Event
-from typing import TextIO, Optional, Any, Dict
+from typing import TextIO, Optional, Any, Dict, Union
 
 import asyncssh
 from prompt_toolkit import print_formatted_text, PromptSession, HTML
@@ -344,7 +344,7 @@ class DemoCLI(BaseCLI):
         print_info(f"woke up after {round(t_end - t_start, 3)} seconds")
 
     @cli.command
-    async def progress(self, ticks: int | ZeroOrOne = 50) -> None:
+    async def progress(self, ticks: Union[ int, ZeroOrOne] = 50) -> None:
         """
         Show a progress bar.
         :param ticks: Number of ticks in the progressbar. Default is 50

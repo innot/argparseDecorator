@@ -373,9 +373,11 @@ These annotations are supported:
 add_argument Decorator
 ++++++++++++++++++++++
 
+~.argparse_decorator.
+
 While its use is usually not required there might be some situations where
 the function signature and its annotations are not sufficient to accurately
-describe an argument. In this case the :meth:`.ArgParseDecorator.add_argument` decorator can be used.
+describe an argument. In this case the :meth:`~.argparse_decorator.ArgParseDecorator.add_argument` decorator can be used.
 Any parameter to this decorator is passed directly to the
 :external:meth:`~argparse.ArgumentParser.add_argument` method of the underlying *ArgumentParser*
 
