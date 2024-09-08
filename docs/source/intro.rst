@@ -100,6 +100,9 @@ See :ref:`Using the argparseDecorator` for more details and examples.
 
 Version history
 +++++++++++++++
+1.3.1
+    - Fixed some bugs in the documentation
+
 1.3.0
     - Added support for command aliases
     - New Annotations: RequiredFlag, RequiredOption

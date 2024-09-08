@@ -147,6 +147,8 @@ will install the argParseDecorator module.
 Comprehensive documentation is available at https://argparseDecorator.readthedocs.io/.
 
 ## Version
+* 1.3.1
+  * Fixed some bugs in the documentation
 * 1.3.0
   * Added support for command aliases
   * New Annotations: RequiredFlag, RequiredOption
