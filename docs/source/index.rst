@@ -9,6 +9,7 @@ Welcome to ArgParseDecorator's documentation!
    usage
    limitations
    examples
+   version_history
    module_api
 
 Indices and tables
