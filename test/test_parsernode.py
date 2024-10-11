@@ -58,7 +58,7 @@ class MyTestCase(unittest.TestCase):
         self.assertCountEqual(globals(), testnode.function_globals)
         testnode.function_globals = {"foo": 1}
         self.assertEqual({"foo": 1}, testnode.function_globals)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             testnode.function = "string is not callable"
 
         # setting a new parser

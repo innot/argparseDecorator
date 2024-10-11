@@ -477,6 +477,69 @@ class TestSync(unittest.TestCase):
             def test3() -> None:
                 pass
 
+    def test_ignore_annotations(self):
+        cli = ArgParseDecorator()
+
+        # test that default does raise an error
+        with self.assertRaises(TypeError):
+            @cli.command
+            @cli.add_argument("arg1", type=float)
+            def test1(arg1: int) -> None:
+                pass
+
+        # now test with the flag
+        @cli.command(ignore_annotations=True)
+        @cli.add_argument("arg2", type=float)
+        def test2(arg2:int) -> None:
+            pass
+
+        node = cli.rootnode.get_node("test2")
+        self.assertTrue(node.ignore_annotations)
+        arg = node.get_argument("arg2")
+        self.assertEqual(arg.type, float)
+
+        # test if order matters
+        @cli.command("title", ignore_annotations=True, prog="foobar")
+        def test3(arg3:int) -> None:
+            pass
+
+        node = cli.rootnode.get_node("test3")
+        self.assertTrue(node.ignore_annotations)
+        arg = node.get_argument("arg3")
+        self.assertEqual(arg.type, None)
+
+
+        @cli.command( prog="test", ignore_annotations=True)
+        def test4(arg4:int) -> None:
+            pass
+
+        node = cli.rootnode.get_node("test4")
+        self.assertTrue(node.ignore_annotations)
+        arg = node.get_argument("arg4")
+        self.assertEqual(arg.type, None)
+
+    def test_ignore_docstring(self):
+        cli = ArgParseDecorator()
+
+        # first the default (docstring not ignored)
+        @cli.command()
+        def test1() -> None:
+            """description"""
+            pass
+
+        node = cli.rootnode.get_node("test1")
+        self.assertFalse(node.ignore_docstring)
+        self.assertEqual(node.description, "description")
+
+        # and now with ignored docstring
+        @cli.command(ignore_docstring=True)
+        def test2() -> None:
+            """Should be ignored"""
+            pass
+
+        node = cli.rootnode.get_node("test2")
+        self.assertTrue(node.ignore_docstring)
+        self.assertEqual(node.description, "")
 
 
 class TestAsync(unittest.IsolatedAsyncioTestCase):

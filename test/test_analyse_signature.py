@@ -110,7 +110,7 @@ class TestSignatureParser(unittest.TestCase):
 
         # test multiple type failures
         arg = Argument("test6")
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             node.analyse_annotation("Union[int, ZeroOrOne[float]]", arg)
             self.fail()
 

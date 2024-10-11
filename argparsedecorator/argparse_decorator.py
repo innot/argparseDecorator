@@ -38,7 +38,7 @@ import sys
 from argparse import ArgumentParser, Namespace, ArgumentError
 from pathlib import Path
 from shlex import shlex
-from typing import List, Union, Callable, Any, Type, Optional, Dict, Tuple, TextIO, Iterator
+from typing import List, Union, Callable, Any, Type, Optional, Dict, Tuple, TextIO, Iterator, Iterable
 
 from .annotations import ZeroOrMore  # for the builtin help command
 from .argument import Argument
@@ -90,7 +90,7 @@ class ArgParseDecorator:
 
         self.hyphen_replacement = hyph_replace
 
-        self._rootnode: ParserNode = ParserNode(None, **kwargs)
+        self._rootnode: ParserNode = ParserNode(None, None, **kwargs)
 
         if argparser_class:
             if issubclass(argparser_class, ArgumentParser):
@@ -149,7 +149,9 @@ class ArgParseDecorator:
 
     #    @doublewrap
     #    def command(self, f: Callable):
-    def command(self, *args: Union[str, Callable], **kwargs: Any) -> Callable:
+    def command(self, *args: Union[str, Callable], aliases: Union[str, Iterable[str]] = None,
+                ignore_annotations: bool = False,
+                ignore_docstring: bool = False, **kwargs: Any) -> Callable:
         """
         Decorator to mark a method as an executable command.
 
@@ -157,10 +159,14 @@ class ArgParseDecorator:
         It also analyses the signature and the docstring of the decorated function to gather
         information about its arguments.
 
+        :param aliases: A list of aliases for this command
+        :param ignore_annotations: If set to :code:`True` the annotations of the function signature should not be used.
+        :param ignore_docstring: If set to :code:`True` the docstring is not parsed.
         :param args: Optional arguments that are passed directly to the
             :external:meth:`~argparse.ArgumentParser.add_subparsers` method of the underlying *ArgumentParser*.
         :param kwargs: Optional keyword arguments that are passed directly to the
             :external:meth:`~argparse.ArgumentParser.add_subparsers` method of the underlying *ArgumentParser*.
+
         :return: The decorator function
         """
 
@@ -168,15 +174,14 @@ class ArgParseDecorator:
         def decorator(func: Callable) -> Callable:
             node: ParserNode = self._node_from_func(func)
             if not (len(args) == 1 and len(kwargs) == 0 and callable(args[0])):
-                try:
-                    aliases = kwargs.pop("aliases")
+                if aliases:
                     node.aliases = aliases
-                except ValueError as exc:
-                    raise exc   # aliases were not valid - break the program
-                except KeyError:
-                    pass
+                node.ignore_annotations = ignore_annotations
+                node.ignore_docstring = ignore_docstring
+
                 # save arguments of decorator
                 node.parser_args = (args, kwargs)
+
             node.function = func
             return func
 
@@ -487,7 +492,7 @@ def split_commandline(cmdline: Union[str, List[str], Iterator[str]]) -> List[str
         result_list[0] = Path(result_list[0]).stem
     elif isinstance(cmdline, str):
         lexer = shlex(cmdline, posix=True)
-        lexer.whitespace_split = True   # otherwise it would split '-' into seperate tokens
+        lexer.whitespace_split = True  # otherwise it would split '-' into seperate tokens
         result_list = list(lexer)
     else:
         raise TypeError("Cmdline argument must be a string, a list of strings or a Iterator object.")

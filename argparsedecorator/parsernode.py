@@ -68,6 +68,7 @@ class ParserNode:
         """Normally empty List of all aliases of this command."""
 
         self.description: str = ""
+        """Description used for the help"""
 
         self._arguments: Dict[str, Argument] = {}
         """Registry for all arguments of this node"""
@@ -93,6 +94,10 @@ class ParserNode:
         # default is to inhibit the [-h] option and to use the "help" command
         # provided by the ArgParseDecorator
         self._add_help = False
+
+        # Flag to indicate the function signatures should not be parsed.
+        self._ignore_annotations: bool = False
+        self._ignore_docstring: bool = False
 
     @property
     def title(self) -> str:
@@ -179,7 +184,7 @@ class ParserNode:
     @function.setter
     def function(self, function: Callable[[Dict[str, Any]], Any]):
         if not callable(function):
-            raise ValueError(f"'function' must be a callable function. Was a {type(function)}")
+            raise TypeError(f"'function' must be a callable function. Was a {type(function)}")
         self._func = function
         if hasattr(function, '__globals__'):
             self._func_globals = function.__globals__  # type: ignore
@@ -189,7 +194,9 @@ class ParserNode:
             self._func_coroutine = True
 
         self.analyse_signature(function)
-        self.analyse_docstring(function)
+
+        if not self._ignore_docstring:
+            self.analyse_docstring(function)
 
     @property
     def function_globals(self) -> Dict[str, Any]:
@@ -239,6 +246,30 @@ class ParserNode:
         Read only property.
         """
         return self._arguments
+
+    @property
+    def ignore_annotations(self) -> bool:
+        """
+        Returns :code:`True` if the function signature annotations are to be ignored.
+        This can be useful if the argument type is set via the add_argument() decorator.
+        """
+        return self._ignore_annotations
+
+    @ignore_annotations.setter
+    def ignore_annotations(self, value: bool) -> None:
+        self._ignore_annotations = value
+
+    @property
+    def ignore_docstring(self) -> bool:
+        """
+        Returns :code:`True` if the function docstring should not be parsed.
+        This might be useful if there are conflicts with other tools using the docstring.
+        """
+        return self._ignore_docstring
+
+    @ignore_docstring.setter
+    def ignore_docstring(self, value: bool) -> None:
+        self._ignore_docstring = value
 
     def get_argument(self, name: str) -> Optional[Argument]:
         """
@@ -457,34 +488,35 @@ class ParserNode:
                 # does not exist - create a new one
                 arg: Argument = Argument(name, self.function_globals)
 
-            p = parameters[name]
+            if not self._ignore_annotations:
+                p = parameters[name]
 
-            # check if annotation or default are empty (check against 'signature.empty')
-            annotation = p.annotation if p.annotation != signature.empty else ""
-            default = p.default if p.default != signature.empty else None
+                # check if annotation or default are empty (check against 'signature.empty')
+                annotation = p.annotation if p.annotation != signature.empty else ""
+                default = p.default if p.default != signature.empty else None
 
-            # now analyse the complete annotation.
-            self.analyse_annotation(annotation, arg)
+                # now analyse the complete annotation.
+                self.analyse_annotation(annotation, arg)
 
-            # handle some special cases
-            if arg.optional and default is False:
-                # This seems counter-intuitive, but if a flag is absent on the command line
-                # nothing is returned from the parse_arg() call and the default of 'False'
-                # is assigned to the argument.
-                arg.action = "store_true"  # -f: Flag = False
-                arg.type = None  # store_true implies bool
-            if arg.optional and default is True:
-                arg.action = "store_false"  # -f: Flag = True
-                arg.type = None  # store_true implies bool
-            if arg.action == "store_const" or arg.action == "append_const":
-                arg.const = default  # -f: Flag | AppendConst = 42
-            else:
-                arg.default = default
+                # handle some special cases
+                if arg.optional and default is False:
+                    # This seems counter-intuitive, but if a flag is absent on the command line
+                    # nothing is returned from the parse_arg() call and the default of 'False'
+                    # is assigned to the argument.
+                    arg.action = "store_true"  # -f: Flag = False
+                    arg.type = None  # store_true implies bool
+                if arg.optional and default is True:
+                    arg.action = "store_false"  # -f: Flag = True
+                    arg.type = None  # store_true implies bool
+                if arg.action == "store_const" or arg.action == "append_const":
+                    arg.const = default  # -f: Flag | AppendConst = 42
+                else:
+                    arg.default = default
 
-            # check that the default for a 'choices' argument is actually one of the choices.
-            if arg.choices and arg.default:
-                if arg.default not in arg.choices:
-                    raise ValueError(f"Default value {arg.default} must be in list of choices.")
+                # check that the default for a 'choices' argument is actually one of the choices.
+                if arg.choices and arg.default:
+                    if arg.default not in arg.choices:
+                        raise ValueError(f"Default value {arg.default} must be in list of choices.")
 
             self.add_argument(arg)
 

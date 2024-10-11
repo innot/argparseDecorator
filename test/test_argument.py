@@ -84,9 +84,9 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(type(argparse.FileType('w')), type(arg.get_command_line()[1]['type']))
 
         arg = Argument("type")
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             arg.type = 42
-        with self.assertRaises(ValueError):
+        with self.assertRaises(TypeError):
             arg.type = int
             arg.type = float
 

@@ -161,14 +161,14 @@ class Argument:
             new_type: Callable = eval(argtype, self._globals)
         else:  # not a str
             if not callable(argtype):
-                raise ValueError(f"{argtype} is not callable")
+                raise TypeError(f"{argtype} is not callable")
             new_type: Callable = argtype
 
         # if type has been set previously check that the new type is identical.
         # changes of type / multiple different types are not allowed
         if self._type:
             if self._type.__name__ != new_type.__name__:
-                raise ValueError(f"type has already been set to {self._type.__name__}")
+                raise TypeError(f"type has already been set to {self._type.__name__}")
 
         self._type = new_type
 
