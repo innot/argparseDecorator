@@ -147,11 +147,13 @@ will install the argParseDecorator module.
 Comprehensive documentation is available at https://argparseDecorator.readthedocs.io/.
 
 ## Version
+* 1.4.0
+  * added ``ignore_annotations`` and ``ignore_docstring`` flags
 * 1.3.1
   * Fixed some bugs in the documentation
 * 1.3.0
   * Added support for command aliases
-  * New Annotations: RequiredFlag, RequiredOption
+  * New Annotations: ``RequiredFlag``, ``RequiredOption``
 * 1.2.0 
   * Added support for sys.argv argument lists in execute()
   * Using shlex to split commandlines into tokens
