@@ -157,12 +157,15 @@ The decorated function must have an argument of the same name and in the same or
     to not cause ambiguities. While *argparseDecorator* will usually catch contradictory inputs and raise an
     Exception this is not guaranteed as not all possible combinations are tested.
 
+Ignore Annotations
+++++++++++++++++++
+
 When using some Callable as the type via ``add_argument``, you may want to annotated the function argument with
 the type returned by the Callable to make a type checkers happy. By default this would cause a
 :external:class:`TypeError` due to the mismatch in types.
 
-In this case the :code:`ignore_annotations` flag can be set in the @command decorator to tell
-*argparseDecorator* to disregard all annotations in the function signature.
+In this case the :code:`ignore_annotations` flag can be set to ``True`` in the @command decorator to tell
+*argparseDecorator* to disregard **all** annotations in the function signature.
 
 .. code-block:: python
 
